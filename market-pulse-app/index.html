@@ -1,0 +1,2247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>市场脉搏 · Market Pulse</title>
+<style>
+  :root{
+    --bg:#05070d;
+    --panel:rgba(17,23,35,.72);
+    --line:rgba(255,255,255,.075);
+    --line-strong:rgba(255,255,255,.14);
+    --text:#f5f2ea;
+    --muted:#8d96aa;
+    --muted-2:#616b80;
+    --amber:#f6b45c;
+    --gold:#e9c46a;
+    --teal:#5eead4;
+    --coral:#ff6b6b;
+    --up:#ff5f6d;
+    --down:#2fd6a5;
+    --radius:22px;
+    --shadow:0 30px 70px -34px rgba(0,0,0,.95);
+    --num:"Bahnschrift","DIN Alternate","Barlow Condensed","Roboto Condensed","Arial Narrow",sans-serif;
+    --sans:"PingFang SC","Microsoft YaHei","Noto Sans SC","Source Han Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html{min-height:100%}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background:
+      radial-gradient(900px 620px at 8% -8%, rgba(246,180,92,.13), transparent 62%),
+      radial-gradient(820px 600px at 92% 2%, rgba(94,234,212,.075), transparent 62%),
+      radial-gradient(1000px 760px at 50% 112%, rgba(255,95,109,.07), transparent 60%);
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.024) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.024) 1px, transparent 1px);
+    background-size:56px 56px;
+    -webkit-mask-image:radial-gradient(ellipse at 50% 0%, #000 0%, transparent 72%);
+    mask-image:radial-gradient(ellipse at 50% 0%, #000 0%, transparent 72%);
+    opacity:.55;
+  }
+  .shell{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh}
+  a{color:inherit}
+  button{font-family:inherit}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    width:min(1440px, calc(100% - 64px));
+    margin:0 auto;
+    padding:26px 0 0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:22px;
+  }
+  .topbar-left{display:flex;align-items:center;gap:22px;min-width:0;flex:1}
+  .brand{display:flex;align-items:center;gap:13px;text-decoration:none;min-width:0;flex:0 0 auto}
+  .brand-mark{
+    width:40px;height:40px;flex:0 0 auto;border-radius:13px;
+    display:grid;place-items:center;color:#0a0c12;
+    background:linear-gradient(135deg,#ffd08a 0%,#f6b45c 45%,#ff7b72 100%);
+    box-shadow:0 10px 30px -10px rgba(246,180,92,.85), inset 0 1px 0 rgba(255,255,255,.55);
+  }
+  .brand-mark svg{width:23px;height:23px;display:block}
+  .brand-title{display:block;font-size:17px;font-weight:700;letter-spacing:.03em;line-height:1.1}
+  .brand-sub{display:block;margin-top:5px;font-family:var(--num);font-size:9px;letter-spacing:.23em;color:var(--muted-2);white-space:nowrap}
+  .live-tip{
+    display:flex;align-items:center;gap:10px;min-width:0;max-width:560px;flex:1 1 auto;
+    padding-left:20px;border-left:1px solid var(--line);
+  }
+  .live-tip-label{
+    flex:0 0 auto;padding:3px 6px;border-radius:5px;
+    font-family:var(--num);font-size:8px;letter-spacing:.13em;color:var(--amber);
+    border:1px solid rgba(246,180,92,.18);background:rgba(246,180,92,.05);white-space:nowrap;
+  }
+  .live-tip-text{
+    display:-webkit-box;min-width:0;overflow:hidden;
+    -webkit-line-clamp:2;-webkit-box-orient:vertical;
+    font-size:12px;line-height:1.5;letter-spacing:.005em;color:#c3cbd9;text-decoration:none;
+    transition:color .2s ease,opacity .18s ease,transform .18s ease;
+  }
+  .live-tip-text:hover{color:#f0e9db}
+  .live-tip-text.is-changing{opacity:0;transform:translateY(3px)}
+  .live-tip-refresh{
+    width:22px;height:22px;flex:0 0 auto;display:grid;place-items:center;
+    border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted-2);
+    cursor:pointer;transition:color .2s,border-color .2s,background .2s;
+  }
+  .live-tip-refresh:hover{color:var(--amber);border-color:rgba(246,180,92,.2);background:rgba(246,180,92,.05)}
+  .live-tip-refresh svg{width:12px;height:12px;display:block}
+  .topbar-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
+  .clock-block{text-align:right;padding-right:4px}
+  .clock{display:block;font-family:var(--num);font-size:16px;font-weight:600;letter-spacing:.08em;line-height:1;color:#e9edf7}
+  .date{display:block;margin-top:6px;font-size:10px;letter-spacing:.08em;color:var(--muted-2);white-space:nowrap}
+  .live-pill{
+    display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;
+    border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.025);
+    font-size:10px;letter-spacing:.1em;color:var(--muted);white-space:nowrap;
+  }
+  .live-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--muted-2);position:relative}
+  .live-pill[data-state="live"]{color:#a7ecd7;border-color:rgba(47,214,165,.24);background:rgba(47,214,165,.06)}
+  .live-pill[data-state="live"] .dot{background:var(--down);box-shadow:0 0 0 4px rgba(47,214,165,.12)}
+  .live-pill[data-state="live"] .dot::after{
+    content:"";position:absolute;inset:-4px;border-radius:50%;
+    border:1px solid rgba(47,214,165,.65);animation:ping 2.2s cubic-bezier(0,0,.2,1) infinite;
+  }
+  .live-pill[data-state="partial"]{color:#f3cf8e;border-color:rgba(246,180,92,.24);background:rgba(246,180,92,.055)}
+  .live-pill[data-state="partial"] .dot{background:var(--amber)}
+  .live-pill[data-state="snapshot"]{color:#f0a6a6;border-color:rgba(255,107,107,.2);background:rgba(255,107,107,.05)}
+  .live-pill[data-state="snapshot"] .dot{background:var(--coral)}
+  .refresh-btn{
+    display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 13px;
+    border:1px solid var(--line-strong);border-radius:10px;background:rgba(255,255,255,.04);
+    color:#dbe1ee;font-size:11px;letter-spacing:.04em;cursor:pointer;
+    transition:border-color .2s, background .2s, transform .2s;
+  }
+  .refresh-btn:hover{border-color:rgba(246,180,92,.45);background:rgba(246,180,92,.07)}
+  .refresh-btn:active{transform:translateY(1px)}
+  .refresh-btn:disabled{cursor:wait;opacity:.7}
+  .refresh-icon{width:14px;height:14px;display:block;transition:transform .3s}
+  .refresh-btn.is-loading .refresh-icon{animation:spin 1s linear infinite}
+
+  /* ---------- dashboard ---------- */
+  .dashboard{
+    width:min(1440px, calc(100% - 64px));
+    margin:28px auto 0;
+    display:grid;
+    grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:18px;
+    align-items:stretch;
+  }
+  .card-brent{grid-column:span 7}
+  .card-fear{grid-column:span 5}
+  .card-erp{grid-column:span 12}
+  .card-csi,.card-gold{grid-column:span 6}
+
+  .card{
+    --accent:var(--amber);
+    --glow:rgba(246,180,92,.11);
+    position:relative;
+    display:flex;flex-direction:column;min-width:0;
+    padding:22px 24px 19px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:
+      radial-gradient(130% 100% at 100% 0%, var(--glow), transparent 58%),
+      linear-gradient(165deg, rgba(255,255,255,.052) 0%, rgba(255,255,255,.016) 46%, rgba(255,255,255,.008) 100%);
+    box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.055);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    overflow:hidden;
+    animation:rise .7s cubic-bezier(.2,.7,.2,1) both;
+    transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+  }
+  .card:hover{
+    border-color:rgba(255,255,255,.13);
+    transform:translateY(-2px);
+    box-shadow:0 36px 80px -36px rgba(0,0,0,.98), inset 0 1px 0 rgba(255,255,255,.07);
+  }
+  .card::before{
+    content:"";position:absolute;left:16%;right:16%;top:0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    opacity:.65;pointer-events:none;
+  }
+  .card::after{
+    content:"";position:absolute;right:-120px;top:-140px;width:340px;height:340px;
+    background:radial-gradient(circle,var(--glow),transparent 66%);
+    pointer-events:none;
+  }
+  .card:nth-child(1){animation-delay:.03s}
+  .card:nth-child(2){animation-delay:.09s}
+  .card:nth-child(3){animation-delay:.15s}
+  .card:nth-child(4){animation-delay:.21s}
+  .card:nth-child(5){animation-delay:.27s}
+  .card > *{position:relative;z-index:1}
+  .card-erp .card-foot{margin-top:auto;padding-top:6px}
+
+  .card-brent{--accent:#f6b45c;--glow:rgba(246,180,92,.12)}
+  .card-fear{--accent:#ff8a5c;--glow:rgba(255,107,107,.09)}
+  .card-erp{--accent:#5eead4;--glow:rgba(94,234,212,.09)}
+  .card-csi{--accent:#ff6b7d;--glow:rgba(255,95,109,.085)}
+  .card-gold{--accent:#e9c46a;--glow:rgba(233,196,106,.1)}
+
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}
+  .eyebrow{display:flex;align-items:center;gap:9px;font-size:9px;letter-spacing:.17em;color:var(--muted-2);text-transform:uppercase;white-space:nowrap}
+  .eyebrow .idx{
+    font-family:var(--num);font-size:9px;font-weight:600;letter-spacing:.06em;
+    color:var(--accent);padding:4px 6px;border:1px solid rgba(255,255,255,.12);border-radius:6px;
+    background:rgba(255,255,255,.025);
+  }
+  .status{display:flex;align-items:center;gap:6px;font-size:9px;letter-spacing:.12em;color:var(--muted-2);white-space:nowrap}
+  .status i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
+  .status[data-state="live"]{color:#8fe3c8}
+  .status[data-state="live"] i{background:var(--down);box-shadow:0 0 7px rgba(47,214,165,.8)}
+  .status[data-state="daily"]{color:#a9c5e8}
+  .status[data-state="daily"] i{background:#8bb8e8}
+  .status[data-state="est"]{color:#f2c94c}
+  .status[data-state="est"] i{background:#f2c94c;box-shadow:0 0 7px rgba(242,201,76,.55)}
+  .status[data-state="snapshot"]{color:#c9a86a}
+  .status[data-state="snapshot"] i{background:#c9a86a}
+  .status[data-state="loading"]{color:var(--muted-2)}
+  .status[data-state="loading"] i{animation:pulse-dot 1.4s ease-in-out infinite}
+
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+  .card h2{margin:0;font-size:19px;font-weight:650;letter-spacing:.015em;line-height:1.25}
+  .sub{margin:6px 0 0;font-size:10.5px;line-height:1.55;color:var(--muted);letter-spacing:.015em}
+  .code{
+    display:inline-block;margin-left:4px;padding:2px 5px;border-radius:4px;
+    font-family:var(--num);font-size:9px;letter-spacing:.08em;color:var(--muted);
+    border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);vertical-align:1px;
+  }
+
+  .price-row{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-top:16px}
+  .price{
+    display:flex;align-items:baseline;gap:2px;
+    font-family:var(--num);font-size:56px;font-weight:650;line-height:.92;letter-spacing:-.035em;
+    color:#fbf8f1;font-variant-numeric:tabular-nums;text-shadow:0 6px 30px rgba(0,0,0,.45);
+  }
+  .price .currency{font-size:23px;font-weight:500;color:var(--muted);letter-spacing:0;margin-right:2px}
+  .price .unit{font-family:var(--sans);font-size:10px;font-weight:500;color:var(--muted-2);letter-spacing:.04em;margin-left:6px;white-space:nowrap}
+  .card-csi .price,.card-gold .price{font-size:42px}
+  .card-csi .price .currency,.card-gold .price .currency{font-size:18px}
+
+  .change{
+    display:inline-flex;align-items:center;gap:2px;
+    padding:6px 9px;margin-bottom:2px;border-radius:8px;
+    border:1px solid var(--line);background:rgba(255,255,255,.035);
+    font-family:var(--num);font-size:11.5px;font-weight:600;letter-spacing:.02em;white-space:nowrap;
+  }
+  .change .chg-pct{opacity:.72;margin-left:3px}
+  .change.up{color:var(--up);border-color:rgba(255,95,109,.24);background:rgba(255,95,109,.075)}
+  .change.down{color:var(--down);border-color:rgba(47,214,165,.22);background:rgba(47,214,165,.065)}
+  .change.flat{color:var(--muted)}
+
+  .metric-chip{
+    display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:6px;
+    border:1px solid var(--line);background:rgba(255,255,255,.028);
+    font-family:var(--num);font-size:10px;color:var(--muted);white-space:nowrap;
+  }
+
+  /* ---------- charts ---------- */
+  .chart-wrap{position:relative;margin:15px 0 0}
+  .chart-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;font-size:9px;letter-spacing:.1em;color:var(--muted-2)}
+  .chart-head .range{font-family:var(--num);letter-spacing:.06em;color:#6f7a90;white-space:nowrap}
+  .chart{position:relative;width:100%;height:196px;touch-action:pan-y;cursor:crosshair}
+  .card-csi .chart,.card-gold .chart{height:142px}
+  .chart svg{display:block;width:100%;height:100%;overflow:visible}
+  .chart .line{filter:drop-shadow(0 3px 9px rgba(0,0,0,.3))}
+  .chart .crosshair,.chart .hover-dot{pointer-events:none}
+  .chart-tip{
+    position:absolute;z-index:3;transform:translate(-50%,-118%);
+    display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:7px;
+    border:1px solid rgba(255,255,255,.14);background:rgba(9,13,21,.93);
+    box-shadow:0 10px 24px -12px rgba(0,0,0,.9);
+    font-family:var(--num);font-size:10px;color:var(--muted);white-space:nowrap;pointer-events:none;
+    backdrop-filter:blur(6px);
+  }
+  .chart-tip b{font-size:11px;font-weight:600;color:var(--text)}
+  .chart-tip[hidden]{display:none}
+  .chart-placeholder{
+    position:absolute;inset:0;display:grid;place-items:center;
+    font-size:10px;letter-spacing:.08em;color:var(--muted-2);
+    border:1px dashed rgba(255,255,255,.07);border-radius:12px;
+  }
+
+  /* ---------- stats ---------- */
+  .stats{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;
+    margin-top:auto;padding-top:15px;border-top:1px solid var(--line);
+  }
+  .stat{min-width:0}
+  .stat span{display:block;margin-bottom:5px;font-size:9.5px;letter-spacing:.08em;color:var(--muted-2)}
+  .stat b{display:block;font-family:var(--num);font-size:12.5px;font-weight:600;letter-spacing:.01em;color:#dbe2ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stat b.muted{color:var(--muted-2);font-weight:500}
+
+  .card-foot{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-top:14px;font-size:9px;letter-spacing:.06em;color:var(--muted-2);
+  }
+  .card-foot a{display:inline-flex;align-items:center;gap:4px;text-decoration:none;color:var(--muted);border-bottom:1px dotted rgba(255,255,255,.18);padding-bottom:1px;transition:color .2s,border-color .2s}
+  .card-foot a:hover{color:var(--accent);border-color:var(--accent)}
+  .card-foot .stamp{font-family:var(--num);letter-spacing:.05em;white-space:nowrap;color:#697489}
+
+  /* ---------- fear ---------- */
+  .fear-score-row{display:flex;align-items:flex-end;gap:12px;margin-top:14px;flex-wrap:wrap}
+  .card-fear .fear-score-row,
+  .card-fear .fear-desc,
+  .card-fear .gauge,
+  .card-fear .gauge-scale,
+  .card-fear .percentile{width:100%;max-width:620px;margin-left:auto;margin-right:auto}
+  .fear-score{font-family:var(--num);font-size:54px;font-weight:650;line-height:.9;letter-spacing:-.04em;color:#fbf8f1;font-variant-numeric:tabular-nums}
+  .fear-score small{font-family:var(--num);font-size:12px;font-weight:500;color:var(--muted-2);letter-spacing:.04em;margin-left:4px}
+  .fear-label{
+    display:inline-flex;align-items:center;height:24px;padding:0 9px;margin-bottom:3px;border-radius:999px;
+    font-size:10px;font-weight:600;letter-spacing:.06em;border:1px solid currentColor;
+  }
+  .fear-label.extreme-fear{color:#7dd3fc;background:rgba(125,211,252,.07)}
+  .fear-label.fear{color:#5eead4;background:rgba(94,234,212,.07)}
+  .fear-label.neutral{color:#f2c94c;background:rgba(242,201,76,.07)}
+  .fear-label.greed{color:#ff9f5a;background:rgba(255,159,90,.08)}
+  .fear-label.extreme-greed{color:#ff5f6d;background:rgba(255,95,109,.08)}
+  .card-fear.is-extreme-fear{
+    --accent:#7dd3fc;--glow:rgba(125,211,252,.20);
+    border-color:rgba(125,211,252,.34);
+    box-shadow:0 30px 70px -34px rgba(0,0,0,.95),0 0 0 1px rgba(125,211,252,.12),0 0 42px -8px rgba(125,211,252,.28),inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .card-fear.is-extreme-greed{
+    --accent:#ff5f6d;--glow:rgba(255,95,109,.24);
+    border-color:rgba(255,95,109,.38);
+    box-shadow:0 30px 70px -34px rgba(0,0,0,.95),0 0 0 1px rgba(255,95,109,.14),0 0 42px -8px rgba(255,95,109,.32),inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .card-fear.is-extreme::before{opacity:1;height:2px}
+  .card-fear.is-extreme::after{animation:extreme-breathe 3.2s ease-in-out infinite}
+  .card-fear.is-extreme .fear-score{color:var(--accent);text-shadow:0 0 34px var(--glow)}
+  .card-fear.is-extreme .fear-label{border-color:var(--accent);box-shadow:0 0 18px var(--glow)}
+  .card-fear.is-extreme .gauge{filter:drop-shadow(0 0 14px var(--glow))}
+  .card-fear.is-extreme .status{color:var(--accent)}
+  .fear-extreme{
+    display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;margin-bottom:3px;border-radius:999px;
+    font-size:9px;font-weight:700;letter-spacing:.08em;white-space:nowrap;
+    color:#081018;background:var(--accent);box-shadow:0 0 20px var(--glow);
+    animation:extreme-badge 2.1s ease-in-out infinite;
+  }
+  .fear-extreme[hidden]{display:none}
+  .fear-extreme i{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.75}
+  .card-fear.is-extreme-greed .fear-extreme{color:#fff}
+  .fear-desc{margin:10px 0 0;font-size:10.5px;line-height:1.6;color:var(--muted);min-height:33px}
+  .gauge{position:relative;width:100%;height:176px;margin:2px 0 0}
+  .gauge svg{display:block;width:100%;height:100%;overflow:visible}
+  .gauge-scale{display:flex;align-items:center;justify-content:space-between;padding:0 5px;margin-top:-2px;font-size:8.5px;letter-spacing:.06em;color:var(--muted-2)}
+  .gauge-scale span:nth-child(2){color:#8a93a6}
+
+  .percentile{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+  .pct-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:10px;letter-spacing:.04em;color:var(--muted)}
+  .pct-head b{font-family:var(--num);font-size:13px;font-weight:600;color:#e8edf7;letter-spacing:.02em}
+  .pct-track{position:relative;height:6px;margin-top:9px;border-radius:99px;background:rgba(255,255,255,.055);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .pct-fill{position:absolute;left:0;top:0;bottom:0;width:22.9%;border-radius:99px;background:linear-gradient(90deg,rgba(47,214,165,.55),rgba(94,234,212,.8));transition:width .8s cubic-bezier(.2,.7,.2,1)}
+  .pct-mark{position:absolute;top:50%;left:22.9%;width:9px;height:9px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(255,255,255,.13),0 0 12px rgba(255,255,255,.2);transition:left .8s cubic-bezier(.2,.7,.2,1)}
+
+  /* ---------- erp ---------- */
+  .erp-score-row{display:flex;align-items:flex-end;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .erp-value{font-family:var(--num);font-size:52px;font-weight:650;line-height:.9;letter-spacing:-.035em;color:#fbf8f1;font-variant-numeric:tabular-nums}
+  .erp-badge{
+    display:inline-flex;align-items:center;height:24px;padding:0 9px;margin-bottom:3px;border-radius:999px;
+    font-size:10px;font-weight:600;letter-spacing:.05em;border:1px solid currentColor;
+  }
+  .erp-badge.high{color:#ff8f8f;background:rgba(255,95,109,.07)}
+  .erp-badge.mid{color:#f2c94c;background:rgba(242,201,76,.07)}
+  .erp-badge.low{color:#7dd3fc;background:rgba(125,211,252,.07)}
+  .erp-bar{position:relative;height:11px;margin:27px 0 0;border-radius:99px}
+  .erp-zones{display:flex;height:100%;border-radius:99px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .erp-zones i:nth-child(1){flex:3;background:rgba(125,211,252,.18)}
+  .erp-zones i:nth-child(2){flex:2;background:rgba(242,201,76,.16)}
+  .erp-zones i:nth-child(3){flex:2;background:rgba(255,95,109,.18)}
+  .erp-marker{
+    position:absolute;top:50%;left:88.3%;width:4px;height:23px;border-radius:4px;background:#fff;
+    transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(255,255,255,.1),0 0 16px rgba(255,255,255,.45);
+    transition:left .8s cubic-bezier(.2,.7,.2,1);
+  }
+  .erp-threshold{position:absolute;top:18px;transform:translateX(-50%);font-family:var(--num);font-size:8.5px;letter-spacing:.04em;color:var(--muted-2);white-space:nowrap}
+  .erp-threshold.t1{left:42.857%}
+  .erp-threshold.t2{left:71.428%}
+  .erp-scale{display:flex;justify-content:space-between;margin-top:19px;font-family:var(--num);font-size:8.5px;color:var(--muted-2)}
+  .erp-components{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+  .erp-comp{padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.018);min-width:0}
+  .erp-comp span{display:block;font-size:9px;letter-spacing:.06em;color:var(--muted-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .erp-comp b{display:block;margin-top:5px;font-family:var(--num);font-size:15px;font-weight:600;color:#e3e9f4;letter-spacing:.01em;white-space:nowrap}
+  .erp-note{margin:10px 0 0;font-size:9.5px;line-height:1.55;color:var(--muted-2)}
+  .erp-formula{margin:8px 0 0;font-size:8.5px;line-height:1.5;color:#4f596c;letter-spacing:.02em}
+
+  .erp-overview{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(340px,.8fr);gap:30px;margin-top:2px}
+  .erp-overview-main{min-width:0}
+  .erp-overview-side{display:flex;flex-direction:column;justify-content:center;min-width:0}
+  .erp-overview-side .erp-components{margin-top:0}
+  .erp-overview-side .erp-formula{margin-top:12px}
+  .erp-chart-wrap{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+  .erp-chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+  .erp-legend{display:flex;align-items:center;gap:14px;font-size:9px;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
+  .erp-legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend-dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex:0 0 auto}
+  .legend-dot--erp{background:var(--teal);box-shadow:0 0 7px rgba(94,234,212,.7)}
+  .legend-dot--csi{background:rgba(255,107,125,.8)}
+  .erp-chart-range{font-family:var(--num);font-size:9px;letter-spacing:.06em;color:var(--muted-2);white-space:nowrap}
+  .erp-chart{position:relative;width:100%;height:260px;touch-action:pan-y;cursor:crosshair}
+  .erp-chart svg{display:block;width:100%;height:100%;overflow:visible}
+  .erp-tip{
+    position:absolute;z-index:4;transform:translate(-50%,-112%);
+    min-width:126px;padding:8px 10px;border-radius:8px;
+    border:1px solid rgba(255,255,255,.14);background:rgba(9,13,21,.94);
+    box-shadow:0 12px 28px -14px rgba(0,0,0,.95);backdrop-filter:blur(6px);
+    font-size:9px;color:var(--muted);pointer-events:none;
+  }
+  .erp-tip[hidden]{display:none}
+  .erp-tip-date{display:block;margin-bottom:5px;font-family:var(--num);font-size:9px;letter-spacing:.06em;color:var(--muted-2)}
+  .erp-tip-row{display:flex;align-items:center;gap:5px;margin-top:4px;white-space:nowrap}
+  .erp-tip-row b{margin-left:auto;font-family:var(--num);font-size:11px;font-weight:600;color:var(--text)}
+  .erp-tip-row em{font-style:normal;font-size:8px;color:var(--muted-2)}
+
+  /* ---------- footer ---------- */
+  .footer{
+    width:min(1440px, calc(100% - 64px));
+    margin:26px auto 0;padding:16px 0 26px;
+    border-top:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    font-size:9.5px;letter-spacing:.05em;color:var(--muted-2);
+  }
+  .footer-left,.footer-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .footer-brand{font-family:var(--num);letter-spacing:.18em;color:#77839a;font-size:9px}
+  .footer b{font-family:var(--num);font-weight:500;color:#8d96aa;letter-spacing:.04em}
+  .sep{color:#3b4456}
+
+  /* ---------- motion ---------- */
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes ping{0%{transform:scale(.7);opacity:.9}70%,100%{transform:scale(1.9);opacity:0}}
+  @keyframes pulse-dot{0%,100%{opacity:.35}50%{opacity:1}}
+  @keyframes extreme-breathe{0%,100%{opacity:.45}50%{opacity:1}}
+  @keyframes extreme-badge{0%,100%{transform:translateY(0);opacity:.92}50%{transform:translateY(-1px);opacity:1}}
+
+  @media (max-width:1180px){
+    .card-brent,.card-fear,.card-erp{grid-column:span 12}
+    .card-csi,.card-gold{grid-column:span 6}
+    .card-brent .chart{height:210px}
+  }
+  @media (max-width:900px){
+    .topbar{flex-direction:column;align-items:flex-start;gap:15px}
+    .topbar-left{width:100%}
+    .topbar-right{width:100%;justify-content:space-between;gap:10px}
+    .card-csi,.card-gold{grid-column:span 12}
+    .card-gold .chart{height:160px}
+    .erp-overview{grid-template-columns:1fr;gap:16px}
+    .erp-overview-side{justify-content:flex-start}
+    .erp-chart{height:210px}
+  }
+  @media (max-width:720px){
+    .topbar{width:calc(100% - 32px);padding-top:18px;flex-direction:column;align-items:flex-start;gap:15px}
+    .topbar-left{width:100%;flex-direction:column;align-items:flex-start;gap:12px}
+    .live-tip{width:100%;max-width:none;padding-left:0;padding-top:10px;border-left:0;border-top:1px solid var(--line)}
+    .topbar-right{width:100%;justify-content:space-between;gap:10px}
+    .clock-block{text-align:left}
+    .dashboard{width:calc(100% - 32px);margin-top:18px;gap:14px}
+    .card{padding:19px 18px 17px;border-radius:18px}
+    .card h2{font-size:18px}
+    .price{font-size:46px}
+    .card-csi .price,.card-gold .price{font-size:38px}
+    .fear-score{font-size:48px}
+    .erp-value{font-size:46px}
+    .chart{height:170px}
+    .card-csi .chart,.card-gold .chart{height:140px}
+    .erp-chart{height:190px}
+    .footer{width:calc(100% - 32px);padding-bottom:20px}
+    .footer-right{gap:8px}
+  }
+  @media (max-width:600px){
+    .footer{flex-direction:column;align-items:flex-start;gap:10px}
+    .footer-left,.footer-right{gap:8px}
+    .footer-left .sep,.footer-right .sep{display:none}
+  }
+  @media (max-width:430px){
+    .brand-sub{letter-spacing:.16em}
+    .live-pill{padding:0 9px}
+    .refresh-btn span{display:none}
+    .refresh-btn{padding:0 11px}
+    .price{font-size:41px}
+    .card-csi .price,.card-gold .price{font-size:34px}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:12px}
+    .chart{height:155px}
+    .erp-chart{height:180px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+</style>
+  <meta name="theme-color" content="#05070d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="市场脉搏">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand" href="#" aria-label="市场脉搏">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M2.8 12.2h4.1l2.2-6.6 4.1 13.1 2.3-6.5h5.7" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span>
+          <span class="brand-title">市场脉搏</span>
+          <span class="brand-sub">MARKET PULSE · FIVE SIGNALS</span>
+        </span>
+      </a>
+      <div class="live-tip" id="liveTip" title="来自《高性价比人生指南》">
+        <span class="live-tip-label">今日一句</span>
+        <a class="live-tip-text" id="liveTipText" href="https://cdyforever.github.io/how-to-live-better/" target="_blank" rel="noopener noreferrer" aria-live="polite">正在挑选一条…</a>
+        <button class="live-tip-refresh" id="liveTipRefresh" type="button" aria-label="换一条" title="换一条">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 11a8 8 0 1 0-2.3 5.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M20 4.5v6.2h-6.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="clock-block">
+        <span class="clock" id="clock">--:--:--</span>
+        <span class="date" id="date">正在校准时间</span>
+      </div>
+      <div class="live-pill" id="livePill" data-state="loading" title="行情连接状态">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="liveText">连接中</span>
+      </div>
+      <button class="refresh-btn" id="refreshBtn" type="button" aria-label="立即刷新行情">
+        <svg class="refresh-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20 11a8 8 0 1 0-2.3 5.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M20 4.5v6.2h-6.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>刷新</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="dashboard">
+
+    <!-- 01 Brent -->
+    <article class="card card-brent" aria-labelledby="brentTitle">
+      <div class="card-top">
+        <div class="eyebrow"><span class="idx">01</span><span>能源 · Energy</span></div>
+        <div class="status" id="brentStatus" data-state="loading"><i></i>连接中</div>
+      </div>
+      <div class="card-head">
+        <div>
+          <h2 id="brentTitle">布伦特原油</h2>
+          <p class="sub">ICE Brent 近月连续<span class="code">B00Y</span></p>
+        </div>
+      </div>
+      <div class="price-row">
+        <div class="price"><span class="currency">$</span><span id="brentPrice">109.86</span><span class="unit">/ 桶</span></div>
+        <div class="change up" id="brentChange"><span class="chg-abs">+3.94</span><span class="chg-pct">+3.72%</span></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-head"><span>近 30 个交易日</span><span class="range" id="brentRange">—</span></div>
+        <div class="chart" id="brentChart" aria-label="布伦特原油近三十个交易日走势"></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>今开</span><b id="brentOpen">105.65</b></div>
+        <div class="stat"><span>最高</span><b id="brentHigh">110.00</b></div>
+        <div class="stat"><span>最低</span><b id="brentLow">104.91</b></div>
+        <div class="stat"><span>昨收</span><b id="brentPrev">105.92</b></div>
+      </div>
+      <div class="card-foot">
+        <a href="https://quote.eastmoney.com/globalfuture/B00Y.html" target="_blank" rel="noopener noreferrer">行情详情 <span aria-hidden="true">↗</span></a>
+        <span class="stamp" id="brentStamp">10-17 05:59</span>
+      </div>
+    </article>
+
+    <!-- 02 Fear & Greed -->
+    <article class="card card-fear" id="fearCard" aria-labelledby="fearTitle">
+      <div class="card-top">
+        <div class="eyebrow"><span class="idx">02</span><span>情绪 · Sentiment</span></div>
+        <div class="status" id="fearStatus" data-state="daily"><i></i>日更</div>
+      </div>
+      <div class="card-head">
+        <div>
+          <h2 id="fearTitle">A股恐贪指数</h2>
+          <p class="sub">百分位 · 0–100 情绪温度计</p>
+        </div>
+      </div>
+      <div class="fear-score-row">
+        <div class="fear-score"><span id="fearScore">38.76</span><small>/ 100</small></div>
+        <span class="fear-label fear" id="fearLabel">恐慌</span>
+        <span class="fear-extreme" id="fearExtreme" hidden><i></i>极端读数</span>
+      </div>
+      <p class="fear-desc" id="fearDesc">风险偏好偏低，市场情绪处于恐慌区间。</p>
+      <div class="gauge" id="fearGauge" aria-hidden="true"></div>
+      <div class="gauge-scale"><span>极度恐慌</span><span>中性</span><span>极度贪婪</span></div>
+      <div class="percentile">
+        <div class="pct-head"><span>近 10 年历史分位</span><b id="fearPct">22.9%</b></div>
+        <div class="pct-track"><div class="pct-fill" id="fearPctFill"></div><span class="pct-mark" id="fearPctMark"></span></div>
+      </div>
+      <div class="card-foot">
+        <a href="https://baifenwei.com/indicator/fear-greed/" target="_blank" rel="noopener noreferrer">百分位 · 数据口径 <span aria-hidden="true">↗</span></a>
+        <span class="stamp" id="fearDate">2026-10-16</span>
+      </div>
+    </article>
+
+    <!-- 03 Equity risk premium -->
+    <article class="card card-erp" aria-labelledby="erpTitle">
+      <div class="card-top">
+        <div class="eyebrow"><span class="idx">03</span><span>估值 · Valuation</span></div>
+        <div class="status" id="erpStatus" data-state="daily"><i></i>日更</div>
+      </div>
+      <div class="card-head">
+        <div>
+          <h2 id="erpTitle">沪深300股权风险溢价</h2>
+          <p class="sub">盈利收益率与 10 年期国债收益率之差</p>
+        </div>
+      </div>
+      <div class="erp-overview">
+        <div class="erp-overview-main">
+          <div class="erp-score-row">
+            <div class="erp-value" id="erpValue">6.18%</div>
+            <span class="erp-badge high" id="erpBadge">性价比高</span>
+          </div>
+          <div class="erp-bar">
+            <div class="erp-zones" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="erp-marker" id="erpMarker"></div>
+            <span class="erp-threshold t1">3%</span>
+            <span class="erp-threshold t2">5%</span>
+          </div>
+          <div class="erp-scale"><span>0%</span><span>7%</span></div>
+          <p class="erp-note" id="erpNote">较前值 +0.05 个百分点 · 高于 5% 阈值 1.18 个百分点</p>
+        </div>
+        <div class="erp-overview-side">
+          <div class="erp-components">
+            <div class="erp-comp"><span>指标前值</span><b id="erpPrev">6.13%</b></div>
+            <div class="erp-comp"><span>本期变化</span><b id="erpDelta">+0.05pct</b></div>
+          </div>
+          <p class="erp-formula">ERP = 1 / PE − 10Y 国债收益率 · 数据源 QuantPal</p>
+        </div>
+      </div>
+      <div class="erp-chart-wrap">
+        <div class="erp-chart-head">
+          <div class="erp-legend">
+            <span><i class="legend-dot legend-dot--erp"></i>股权风险溢价率</span>
+            <span><i class="legend-dot legend-dot--csi"></i>沪深300</span>
+          </div>
+          <span class="erp-chart-range">2012–2026</span>
+        </div>
+        <div class="erp-chart" id="erpChart" aria-label="沪深300股权风险溢价率历史走势"></div>
+      </div>
+      <div class="card-foot">
+        <a href="https://quantpal.cn/macro/macro/equity_risk_premium" target="_blank" rel="noopener noreferrer">QuantPal 原始指标 <span aria-hidden="true">↗</span></a>
+        <span class="stamp" id="erpDate">截至 10-15</span>
+      </div>
+    </article>
+
+    <!-- 04 CSI 300 -->
+    <article class="card card-csi" aria-labelledby="csiTitle">
+      <div class="card-top">
+        <div class="eyebrow"><span class="idx">04</span><span>A股 · China</span></div>
+        <div class="status" id="csiStatus" data-state="loading"><i></i>连接中</div>
+      </div>
+      <div class="card-head">
+        <div>
+          <h2 id="csiTitle">沪深300</h2>
+          <p class="sub">沪深300指数<span class="code">000300</span></p>
+        </div>
+        <span class="metric-chip" id="csiPe">PE 13.01×</span>
+      </div>
+      <div class="price-row">
+        <div class="price"><span id="csiPrice">4,170.61</span></div>
+        <div class="change up" id="csiChange"><span class="chg-abs">+4.60</span><span class="chg-pct">+0.11%</span></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-head"><span>近 30 个交易日</span><span class="range" id="csiRange">—</span></div>
+        <div class="chart" id="csiChart" aria-label="沪深300近三十个交易日走势"></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>今开</span><b id="csiOpen">4,189.26</b></div>
+        <div class="stat"><span>最高</span><b id="csiHigh">4,206.89</b></div>
+        <div class="stat"><span>最低</span><b id="csiLow">4,127.94</b></div>
+        <div class="stat"><span>成交额</span><b id="csiAmount">4,137.5亿</b></div>
+      </div>
+      <div class="card-foot">
+        <a href="https://quote.eastmoney.com/zs000300.html" target="_blank" rel="noopener noreferrer">行情详情 <span aria-hidden="true">↗</span></a>
+        <span class="stamp" id="csiStamp">10-16 16:14</span>
+      </div>
+    </article>
+
+    <!-- 05 Gold -->
+    <article class="card card-gold" aria-labelledby="goldTitle">
+      <div class="card-top">
+        <div class="eyebrow"><span class="idx">05</span><span>避险 · Haven</span></div>
+        <div class="status" id="goldStatus" data-state="loading"><i></i>连接中</div>
+      </div>
+      <div class="card-head">
+        <div>
+          <h2 id="goldTitle">COMEX 黄金</h2>
+          <p class="sub">纽约黄金主力连续<span class="code">GC00Y</span></p>
+        </div>
+      </div>
+      <div class="price-row">
+        <div class="price"><span class="currency">$</span><span id="goldPrice">4,186.70</span><span class="unit">/ 盎司</span></div>
+        <div class="change up" id="goldChange"><span class="chg-abs">+16.60</span><span class="chg-pct">+0.40%</span></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-head"><span>近 30 个交易日</span><span class="range" id="goldRange">—</span></div>
+        <div class="chart" id="goldChart" aria-label="COMEX黄金近三十个交易日走势"></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>今开</span><b id="goldOpen">4,192.10</b></div>
+        <div class="stat"><span>最高</span><b id="goldHigh">4,220.40</b></div>
+        <div class="stat"><span>最低</span><b id="goldLow">4,167.50</b></div>
+        <div class="stat"><span>昨收</span><b id="goldPrev">4,170.10</b></div>
+      </div>
+      <div class="card-foot">
+        <a href="https://quote.eastmoney.com/globalfuture/GC00Y.html" target="_blank" rel="noopener noreferrer">行情详情 <span aria-hidden="true">↗</span></a>
+        <span class="stamp" id="goldStamp">10-17 04:59</span>
+      </div>
+    </article>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <span class="footer-brand">MARKET PULSE</span>
+      <span>公开行情接口 · 可能存在延迟</span>
+      <span class="sep">/</span>
+      <span>仅供研究，不构成投资建议</span>
+    </div>
+    <div class="footer-right">
+      <span>最后更新 <b id="updatedAt">—</b></span>
+      <span class="sep">/</span>
+      <span>自动刷新 60s</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ------------------------------------------------------------------
+   * 快照数据：接口不可用时保证页面完整可读，并在卡片上标记「快照」。
+   * 价格单位：布油 / 黄金为美元，沪深300为点。
+   * ------------------------------------------------------------------ */
+  const SNAPSHOT = {
+    brent: {
+      price: 109.86, prev: 105.92, change: 3.94, pct: 3.72,
+      open: 105.65, high: 110.00, low: 104.91,
+      stamp: '10-17 05:59', date: '2026-10-17', status: 'snapshot',
+      series: [
+        { d: '2026-09-07', v: 97.31 }, { d: '2026-09-08', v: 99.39 },
+        { d: '2026-09-09', v: 101.75 }, { d: '2026-09-10', v: 109.29 },
+        { d: '2026-09-11', v: 104.32 }, { d: '2026-09-14', v: 106.48 },
+        { d: '2026-09-15', v: 108.48 }, { d: '2026-09-16', v: 105.60 },
+        { d: '2026-09-17', v: 104.09 }, { d: '2026-09-18', v: 98.85 },
+        { d: '2026-09-21', v: 95.99 }, { d: '2026-09-22', v: 94.71 },
+        { d: '2026-09-23', v: 98.31 }, { d: '2026-09-24', v: 100.21 },
+        { d: '2026-09-25', v: 97.62 }, { d: '2026-09-28', v: 98.77 },
+        { d: '2026-09-29', v: 95.71 }, { d: '2026-09-30', v: 97.88 },
+        { d: '2026-10-01', v: 103.00 }, { d: '2026-10-02', v: 102.61 },
+        { d: '2026-10-05', v: 100.22 }, { d: '2026-10-06', v: 101.08 },
+        { d: '2026-10-07', v: 101.20 }, { d: '2026-10-08', v: 104.13 },
+        { d: '2026-10-09', v: 104.54 }, { d: '2026-10-12', v: 106.12 },
+        { d: '2026-10-13', v: 106.29 }, { d: '2026-10-14', v: 106.11 },
+        { d: '2026-10-15', v: 105.69 }, { d: '2026-10-16', v: 109.95 }
+      ]
+    },
+    csi: {
+      price: 4170.61, prev: 4166.01, change: 4.60, pct: 0.11,
+      open: 4189.26, high: 4206.89, low: 4127.94,
+      pe: 13.01, amountWan: 41374930,
+      stamp: '10-16 16:14', date: '2026-10-16', status: 'snapshot',
+      series: [
+        { d: '2026-08-28', v: 4609.18 }, { d: '2026-08-31', v: 4625.09 },
+        { d: '2026-09-01', v: 4611.44 }, { d: '2026-09-02', v: 4547.96 },
+        { d: '2026-09-03', v: 4552.58 }, { d: '2026-09-04', v: 4548.05 },
+        { d: '2026-09-07', v: 4575.02 }, { d: '2026-09-08', v: 4558.74 },
+        { d: '2026-09-09', v: 4572.60 }, { d: '2026-09-10', v: 4548.39 },
+        { d: '2026-09-11', v: 4510.16 }, { d: '2026-09-14', v: 4480.08 },
+        { d: '2026-09-15', v: 4450.04 }, { d: '2026-09-16', v: 4480.27 },
+        { d: '2026-09-17', v: 4460.16 }, { d: '2026-09-18', v: 4507.39 },
+        { d: '2026-09-21', v: 4539.57 }, { d: '2026-09-22', v: 4544.59 },
+        { d: '2026-09-23', v: 4517.28 }, { d: '2026-09-24', v: 4439.14 },
+        { d: '2026-09-28', v: 4340.76 }, { d: '2026-09-29', v: 4345.21 },
+        { d: '2026-09-30', v: 4357.62 }, { d: '2026-10-08', v: 4310.28 },
+        { d: '2026-10-09', v: 4317.25 }, { d: '2026-10-12', v: 4287.98 },
+        { d: '2026-10-13', v: 4275.68 }, { d: '2026-10-14', v: 4217.68 },
+        { d: '2026-10-15', v: 4166.01 }, { d: '2026-10-16', v: 4170.61 }
+      ]
+    },
+    gold: {
+      price: 4186.70, prev: 4170.10, change: 16.60, pct: 0.40,
+      open: 4192.10, high: 4220.40, low: 4167.50,
+      stamp: '10-17 04:59', date: '2026-10-17', status: 'snapshot',
+      series: [
+        { d: '2026-09-07', v: 4452.0 }, { d: '2026-09-08', v: 4400.0 },
+        { d: '2026-09-09', v: 4447.2 }, { d: '2026-09-10', v: 4358.5 },
+        { d: '2026-09-11', v: 4390.0 }, { d: '2026-09-14', v: 4340.0 },
+        { d: '2026-09-15', v: 4333.4 }, { d: '2026-09-16', v: 4302.5 },
+        { d: '2026-09-17', v: 4380.6 }, { d: '2026-09-18', v: 4415.9 },
+        { d: '2026-09-21', v: 4381.0 }, { d: '2026-09-22', v: 4396.2 },
+        { d: '2026-09-23', v: 4322.7 }, { d: '2026-09-24', v: 4310.1 },
+        { d: '2026-09-25', v: 4320.5 }, { d: '2026-09-28', v: 4148.5 },
+        { d: '2026-09-29', v: 4215.0 }, { d: '2026-09-30', v: 4189.1 },
+        { d: '2026-10-01', v: 4207.8 }, { d: '2026-10-02', v: 4172.1 },
+        { d: '2026-10-05', v: 4167.6 }, { d: '2026-10-06', v: 4192.7 },
+        { d: '2026-10-07', v: 4136.7 }, { d: '2026-10-08', v: 4158.3 },
+        { d: '2026-10-09', v: 4220.3 }, { d: '2026-10-12', v: 4195.9 },
+        { d: '2026-10-13', v: 4184.2 }, { d: '2026-10-14', v: 4127.3 },
+        { d: '2026-10-15', v: 4192.5 }, { d: '2026-10-16', v: 4186.7 }
+      ]
+    },
+    fear: {
+      score: 38.76, pct: 22.9, date: '2026-10-16',
+      series: null, status: 'snapshot'
+    },
+    erp: {
+      value: 6.18, prev: 6.13,
+      date: '2026-10-15', status: 'daily'
+    }
+  };
+
+  /* QuantPal 历史序列：[日期, 股权风险溢价率, 沪深300收盘] */
+  const ERP_HISTORY = [
+    ['2012-01-04',6.70,2298.75], ['2012-01-11',6.21,2435.61], ['2012-01-18',6.24,2422.19], ['2012-02-01',6.24,2428.99],
+    ['2012-02-08',5.91,2528.24], ['2012-02-15',5.82,2549.61], ['2012-02-22',5.68,2597.48], ['2012-02-29',5.52,2634.14],
+    ['2012-03-07',5.75,2603.01], ['2012-03-14',5.77,2605.11], ['2012-03-21',5.85,2587.79], ['2012-03-28',6.11,2474.90],
+    ['2012-04-09',6.07,2495.15], ['2012-04-16',5.90,2574.04], ['2012-04-23',5.83,2606.04], ['2012-05-02',5.66,2683.49],
+    ['2012-05-09',5.61,2657.51], ['2012-05-16',6.25,2574.65], ['2012-05-23',6.22,2616.87], ['2012-05-30',5.58,2642.26],
+    ['2012-06-06',6.40,2557.40], ['2012-06-13',6.21,2580.64], ['2012-06-20',6.42,2552.61], ['2012-06-28',6.86,2425.73],
+    ['2012-07-05',6.68,2430.37], ['2012-07-12',6.81,2449.18], ['2012-07-19',6.78,2424.32], ['2012-07-26',7.11,2347.49],
+    ['2012-08-02',7.06,2334.88], ['2012-08-09',6.82,2411.70], ['2012-08-16',7.09,2319.67], ['2012-08-23',7.10,2302.20],
+    ['2012-08-30',7.34,2211.37], ['2012-09-06',7.42,2217.82], ['2012-09-13',7.03,2298.46], ['2012-09-20',7.42,2195.95],
+    ['2012-09-27',7.26,2251.72], ['2012-10-11',7.00,2302.53], ['2012-10-18',6.88,2336.08], ['2012-10-25',6.91,2291.24],
+    ['2012-11-01',6.87,2297.88], ['2012-11-08',7.04,2245.41], ['2012-11-15',7.26,2193.62], ['2012-11-22',7.36,2177.55],
+    ['2012-11-29',7.52,2115.68], ['2012-12-06',7.15,2203.60], ['2012-12-13',6.98,2242.64], ['2012-12-20',6.41,2384.82],
+    ['2012-12-27',6.27,2444.59], ['2013-01-08',6.05,2525.33], ['2013-01-15',5.81,2595.86], ['2013-01-22',5.92,2596.90],
+    ['2013-01-29',5.69,2675.87], ['2013-02-05',5.39,2771.68], ['2013-02-19',5.63,2685.61], ['2013-02-26',6.06,2567.59],
+    ['2013-03-05',5.98,2622.81], ['2013-03-12',6.13,2555.61], ['2013-03-19',6.24,2525.10], ['2013-03-26',6.20,2575.05],
+    ['2013-04-02',6.57,2486.39], ['2013-04-11',6.66,2477.88], ['2013-04-18',6.81,2464.85], ['2013-04-25',6.85,2467.88],
+    ['2013-05-07',6.85,2529.94], ['2013-05-14',7.01,2493.34], ['2013-05-21',6.63,2614.85], ['2013-05-28',6.59,2644.36],
+    ['2013-06-04',6.76,2565.67], ['2013-06-14',7.30,2416.77], ['2013-06-21',7.71,2317.39], ['2013-06-28',8.23,2200.64],
+    ['2013-07-05',8.10,2226.85], ['2013-07-12',7.80,2275.37], ['2013-07-19',8.04,2190.48], ['2013-07-26',7.95,2224.01],
+    ['2013-08-02',7.83,2247.26], ['2013-08-09',7.61,2286.01], ['2013-08-16',7.44,2304.14], ['2013-08-23',7.54,2286.93],
+    ['2013-08-30',7.51,2313.91], ['2013-09-06',7.42,2357.78], ['2013-09-13',6.82,2488.90], ['2013-09-24',7.13,2443.89],
+    ['2013-10-08',7.18,2441.81], ['2013-10-15',7.05,2467.52], ['2013-10-22',7.06,2445.89], ['2013-10-29',7.44,2372.05],
+    ['2013-11-05',7.62,2383.77], ['2013-11-12',7.54,2340.00], ['2013-11-19',7.01,2412.16], ['2013-11-26',7.13,2387.42],
+    ['2013-12-03',7.05,2442.78], ['2013-12-10',6.88,2453.32], ['2013-12-17',7.20,2356.38], ['2013-12-24',7.54,2288.25],
+    ['2013-12-31',7.39,2330.03], ['2014-01-08',7.73,2241.91], ['2014-01-15',7.86,2208.94], ['2014-01-22',7.79,2243.80],
+    ['2014-01-29',7.88,2227.78], ['2014-02-12',7.63,2291.25], ['2014-02-19',7.46,2308.66], ['2014-02-26',8.16,2163.41],
+    ['2014-03-05',8.12,2163.98], ['2014-03-12',8.42,2114.13], ['2014-03-19',8.40,2120.87], ['2014-03-26',8.21,2171.05],
+    ['2014-04-02',8.33,2180.73], ['2014-04-10',7.85,2273.76], ['2014-04-17',8.31,2224.80], ['2014-04-24',8.51,2190.47],
+    ['2014-05-05',8.91,2156.47], ['2014-05-12',8.91,2180.05], ['2014-05-19',9.14,2115.14], ['2014-05-26',8.91,2155.98],
+    ['2014-06-03',9.15,2149.92], ['2014-06-10',8.98,2161.27], ['2014-06-17',8.71,2169.67], ['2014-06-24',8.91,2144.82],
+    ['2014-07-01',8.86,2164.56], ['2014-07-08',8.73,2180.47], ['2014-07-15',8.78,2174.98], ['2014-07-22',8.58,2192.70],
+    ['2014-07-29',7.82,2331.37], ['2014-08-05',7.70,2369.35], ['2014-08-12',7.76,2357.05], ['2014-08-19',7.73,2374.77],
+    ['2014-08-26',8.11,2324.09], ['2014-09-02',8.05,2386.46], ['2014-09-10',7.80,2432.43], ['2014-09-17',8.02,2401.33],
+    ['2014-09-24',8.12,2441.86], ['2014-10-08',8.03,2478.38], ['2014-10-15',8.31,2463.87], ['2014-10-22',8.52,2418.64],
+    ['2014-10-29',8.57,2451.38], ['2014-11-05',8.52,2503.45], ['2014-11-12',8.08,2594.32], ['2014-11-19',8.33,2537.22],
+    ['2014-11-26',7.61,2723.02], ['2014-12-03',6.55,2967.55], ['2014-12-10',5.77,3221.55], ['2014-12-17',5.20,3360.60],
+    ['2014-12-24',5.55,3230.39], ['2014-12-31',4.61,3533.70], ['2015-01-09',4.47,3546.72], ['2015-01-16',4.31,3635.15],
+    ['2015-01-23',4.51,3571.73], ['2015-01-30',4.86,3434.39], ['2015-02-06',5.35,3312.42], ['2015-02-13',5.04,3469.83],
+    ['2015-02-27',4.78,3572.84], ['2015-03-06',4.96,3478.52], ['2015-03-13',4.61,3617.66], ['2015-03-20',4.10,3892.57],
+    ['2015-03-27',3.77,3971.70], ['2015-04-03',3.49,4170.54], ['2015-04-13',2.96,4421.07], ['2015-04-20',3.02,4521.92],
+    ['2015-04-27',2.72,4807.59], ['2015-05-05',3.09,4596.84], ['2015-05-12',3.07,4747.42], ['2015-05-19',3.09,4731.22],
+    ['2015-05-26',2.51,5198.92], ['2015-06-02',2.51,5161.87], ['2015-06-09',2.06,5317.46], ['2015-06-16',2.22,5064.82],
+    ['2015-06-24',2.43,4880.13], ['2015-07-01',3.20,4253.02], ['2015-07-08',4.37,3663.04], ['2015-07-15',3.48,3966.76],
+    ['2015-07-22',3.28,4157.16], ['2015-07-29',3.85,3930.38], ['2015-08-05',4.03,3866.90], ['2015-08-12',3.75,4016.13],
+    ['2015-08-19',4.09,3886.14], ['2015-08-26',6.53,3025.69], ['2015-09-02',5.52,3365.83], ['2015-09-11',5.64,3347.19],
+    ['2015-09-18',5.91,3251.27], ['2015-09-25',5.96,3231.95], ['2015-10-09',5.85,3340.12], ['2015-10-16',5.28,3534.07],
+    ['2015-10-23',5.25,3571.24], ['2015-10-30',5.20,3534.08], ['2015-11-06',4.68,3793.37], ['2015-11-13',4.73,3746.24],
+    ['2015-11-20',4.70,3774.38], ['2015-11-27',5.25,3556.99], ['2015-12-04',5.00,3677.59], ['2015-12-11',5.22,3608.06],
+    ['2015-12-18',4.81,3767.91], ['2015-12-25',4.80,3838.20], ['2016-01-04',5.41,3469.07], ['2016-01-11',6.08,3192.45],
+    ['2016-01-18',6.41,3130.73], ['2016-01-25',6.31,3128.89], ['2016-02-01',7.12,2901.05], ['2016-02-15',7.01,2946.71],
+    ['2016-02-22',6.33,3118.87], ['2016-02-29',7.05,2877.47], ['2016-03-07',6.24,3104.84], ['2016-03-14',6.47,3065.69],
+    ['2016-03-21',6.10,3249.44], ['2016-03-28',6.23,3169.73], ['2016-04-05',6.05,3264.49], ['2016-04-12',6.20,3218.45],
+    ['2016-04-19',6.06,3238.30], ['2016-04-26',6.25,3179.16], ['2016-05-04',6.11,3209.46], ['2016-05-11',6.45,3082.81],
+    ['2016-05-18',6.46,3068.04], ['2016-05-25',6.46,3059.23], ['2016-06-01',6.06,3160.55], ['2016-06-08',5.99,3163.99],
+    ['2016-06-17',6.17,3110.36], ['2016-06-24',6.31,3077.16], ['2016-07-01',6.20,3154.20], ['2016-07-08',6.13,3192.28],
+    ['2016-07-15',5.84,3276.28], ['2016-07-22',6.04,3225.16], ['2016-07-29',5.99,3203.93], ['2016-08-05',6.10,3205.11],
+    ['2016-08-12',5.90,3294.23], ['2016-08-19',5.75,3365.02], ['2016-08-26',5.77,3307.09], ['2016-09-02',5.59,3314.11],
+    ['2016-09-09',5.55,3318.04], ['2016-09-20',5.81,3257.40], ['2016-09-27',5.85,3240.75], ['2016-10-11',5.72,3306.56],
+    ['2016-10-18',5.60,3321.33], ['2016-10-25',5.51,3367.45], ['2016-11-01',5.71,3359.05], ['2016-11-08',5.64,3371.12],
+    ['2016-11-15',5.43,3429.87], ['2016-11-22',5.31,3468.36], ['2016-11-29',5.03,3564.04], ['2016-12-06',5.12,3459.15],
+    ['2016-12-13',5.08,3405.04], ['2016-12-20',5.14,3309.06], ['2016-12-27',5.31,3316.39], ['2017-01-04',5.15,3368.31],
+    ['2017-01-11',5.16,3334.50], ['2017-01-18',5.02,3339.37], ['2017-01-25',4.90,3375.90], ['2017-02-08',4.81,3383.29],
+    ['2017-02-15',4.72,3421.71], ['2017-02-22',4.73,3489.76], ['2017-03-01',4.75,3458.44], ['2017-03-08',4.69,3448.73],
+    ['2017-03-15',4.75,3463.64], ['2017-03-22',4.83,3450.05], ['2017-03-29',4.80,3465.19], ['2017-04-07',4.66,3517.46],
+    ['2017-04-14',4.66,3486.50], ['2017-04-21',4.67,3466.79], ['2017-04-28',5.01,3439.75], ['2017-05-08',5.13,3358.81],
+    ['2017-05-15',5.01,3399.19], ['2017-05-22',4.96,3411.24], ['2017-05-31',4.81,3492.88], ['2017-06-07',4.70,3533.87],
+    ['2017-06-14',4.69,3535.30], ['2017-06-21',4.62,3587.95], ['2017-06-28',4.53,3646.17], ['2017-07-05',4.44,3659.68],
+    ['2017-07-12',4.44,3658.82], ['2017-07-19',4.24,3729.75], ['2017-07-26',4.16,3705.39], ['2017-08-02',4.05,3760.85],
+    ['2017-08-09',4.13,3731.04], ['2017-08-16',4.31,3701.42], ['2017-08-23',4.18,3756.09], ['2017-08-30',4.00,3834.30],
+    ['2017-09-06',4.07,3849.45], ['2017-09-13',4.13,3842.61], ['2017-09-20',4.19,3842.44], ['2017-09-27',4.12,3821.20],
+    ['2017-10-11',3.96,3902.69], ['2017-10-18',3.82,3944.16], ['2017-10-25',3.77,3976.95], ['2017-11-01',3.90,3996.62],
+    ['2017-11-08',3.77,4048.01], ['2017-11-15',3.72,4073.67], ['2017-11-22',3.41,4227.57], ['2017-11-29',3.77,4053.75],
+    ['2017-12-06',3.85,4015.82], ['2017-12-13',3.74,4050.09], ['2017-12-20',3.76,4030.49], ['2017-12-27',3.80,3991.21],
+    ['2018-01-04',3.47,4128.81], ['2018-01-11',3.31,4205.59], ['2018-01-18',3.06,4271.42], ['2018-01-25',2.90,4365.08],
+    ['2018-02-01',3.05,4245.90], ['2018-02-08',3.55,4012.05], ['2018-02-22',3.51,4052.73], ['2018-03-01',3.64,4049.09],
+    ['2018-03-08',3.61,4077.60], ['2018-03-15',3.60,4096.16], ['2018-03-22',3.83,4020.35], ['2018-03-29',4.25,3894.05],
+    ['2018-04-09',4.48,3852.93], ['2018-04-16',4.65,3808.86], ['2018-04-23',4.78,3766.33], ['2018-05-02',4.91,3763.65],
+    ['2018-05-09',4.64,3871.62], ['2018-05-16',4.61,3892.84], ['2018-05-23',4.75,3854.58], ['2018-05-30',5.13,3723.37],
+    ['2018-06-06',4.90,3837.35], ['2018-06-13',4.88,3788.34], ['2018-06-21',5.35,3592.97], ['2018-06-28',5.83,3423.53],
+    ['2018-07-05',6.02,3342.44], ['2018-07-12',5.61,3481.06], ['2018-07-19',5.95,3428.34], ['2018-07-26',5.48,3536.25],
+    ['2018-08-02',5.91,3370.96], ['2018-08-09',5.70,3397.53], ['2018-08-16',5.98,3276.73], ['2018-08-23',5.97,3320.03],
+    ['2018-08-30',6.08,3351.09], ['2018-09-06',6.30,3262.88], ['2018-09-13',6.30,3236.57], ['2018-09-20',6.04,3310.13],
+    ['2018-09-28',5.73,3438.86], ['2018-10-12',6.46,3170.73], ['2018-10-19',6.61,3134.95], ['2018-10-26',6.48,3173.64],
+    ['2018-11-02',6.34,3290.25], ['2018-11-09',6.76,3167.44], ['2018-11-16',6.70,3257.67], ['2018-11-23',6.96,3143.48],
+    ['2018-11-30',6.92,3172.69], ['2018-12-07',6.92,3181.56], ['2018-12-14',6.89,3165.91], ['2018-12-21',7.13,3029.40],
+    ['2018-12-28',7.30,3010.65], ['2019-01-08',7.33,3047.70], ['2019-01-15',7.08,3127.99], ['2019-01-22',7.04,3143.32],
+    ['2019-01-29',6.84,3193.97], ['2019-02-12',6.57,3330.34], ['2019-02-19',6.25,3439.61], ['2019-02-26',5.63,3684.69],
+    ['2019-03-05',5.34,3816.01], ['2019-03-12',5.56,3755.35], ['2019-03-19',5.46,3833.96], ['2019-03-26',5.86,3700.44],
+    ['2019-04-02',5.19,3971.29], ['2019-04-10',4.88,4085.85], ['2019-04-17',4.70,4087.24], ['2019-04-24',4.80,4030.09],
+    ['2019-05-06',5.77,3684.62], ['2019-05-13',5.96,3668.73], ['2019-05-20',6.06,3617.79], ['2019-05-27',5.90,3637.20],
+    ['2019-06-03',5.99,3632.01], ['2019-06-11',5.79,3719.28], ['2019-06-18',5.79,3667.62], ['2019-06-25',5.52,3801.31],
+    ['2019-07-02',5.33,3937.17], ['2019-07-09',5.66,3793.13], ['2019-07-16',5.63,3806.84], ['2019-07-23',5.69,3789.91],
+    ['2019-07-30',5.50,3870.32], ['2019-08-06',6.16,3636.33], ['2019-08-13',6.18,3665.75], ['2019-08-20',5.97,3787.73],
+    ['2019-08-27',5.97,3816.95], ['2019-09-03',6.01,3853.61], ['2019-09-10',5.81,3959.26], ['2019-09-18',5.80,3910.08],
+    ['2019-09-25',5.90,3870.98], ['2019-10-09',6.00,3843.24], ['2019-10-16',5.71,3922.69], ['2019-10-23',5.79,3871.08],
+    ['2019-10-30',5.81,3891.23], ['2019-11-06',5.72,3984.88], ['2019-11-13',5.97,3899.98], ['2019-11-20',6.03,3907.86],
+    ['2019-11-27',6.06,3875.62], ['2019-12-04',6.15,3849.82], ['2019-12-11',6.03,3902.75], ['2019-12-18',5.60,4032.78],
+    ['2019-12-25',5.77,3990.87], ['2020-01-02',5.44,4152.24], ['2020-01-09',5.48,4164.37], ['2020-01-16',5.56,4149.04],
+    ['2020-01-23',5.93,4003.90], ['2020-02-07',6.42,3899.87], ['2020-02-14',6.19,3987.73], ['2020-02-21',5.86,4149.49],
+    ['2020-02-28',6.44,3940.05], ['2020-03-06',6.16,4138.51], ['2020-03-13',6.59,3895.31], ['2020-03-20',7.12,3653.22],
+    ['2020-03-27',7.10,3710.06], ['2020-04-03',7.21,3713.22], ['2020-04-13',7.18,3753.26], ['2020-04-20',6.93,3853.46],
+    ['2020-04-27',7.03,3822.77], ['2020-05-07',6.33,3924.89], ['2020-05-14',6.27,3925.22], ['2020-05-21',6.30,3913.79],
+    ['2020-05-28',6.37,3856.63], ['2020-06-04',6.00,3982.19], ['2020-06-11',6.05,3995.88], ['2020-06-18',5.82,4044.38],
+    ['2020-06-29',5.71,4109.72], ['2020-07-06',4.52,4670.09], ['2020-07-13',4.32,4852.96], ['2020-07-20',4.68,4680.30],
+    ['2020-07-27',5.03,4528.45], ['2020-08-03',4.63,4771.31], ['2020-08-10',4.63,4724.87], ['2020-08-17',4.48,4815.23],
+    ['2020-08-24',4.55,4755.85], ['2020-08-31',4.09,4816.22], ['2020-09-07',4.17,4669.37], ['2020-09-14',4.16,4651.05],
+    ['2020-09-21',4.15,4691.43], ['2020-09-28',4.30,4581.91], ['2020-10-13',3.88,4839.20], ['2020-10-20',3.93,4793.47],
+    ['2020-10-27',4.10,4699.28], ['2020-11-03',4.23,4777.56], ['2020-11-10',3.96,4953.88], ['2020-11-17',3.97,4894.79],
+    ['2020-11-24',3.84,4974.29], ['2020-12-01',3.69,5067.10], ['2020-12-08',3.84,5009.88], ['2020-12-15',3.73,4945.10],
+    ['2020-12-22',3.80,4964.77], ['2020-12-29',3.77,5042.94], ['2021-01-06',3.39,5417.67], ['2021-01-13',3.22,5577.97],
+    ['2021-01-20',3.27,5476.43], ['2021-01-27',3.22,5528.00], ['2021-02-03',3.21,5485.20], ['2021-02-10',2.88,5807.72],
+    ['2021-02-24',3.23,5437.57], ['2021-03-03',3.21,5452.21], ['2021-03-10',3.72,5003.61], ['2021-03-17',3.57,5100.86],
+    ['2021-03-24',3.88,4928.69], ['2021-03-31',3.98,5048.36], ['2021-04-08',3.87,5112.21], ['2021-04-15',4.17,4948.97],
+    ['2021-04-22',4.07,5089.24], ['2021-04-29',4.26,5164.17], ['2021-05-11',4.74,5023.06], ['2021-05-18',4.51,5187.60],
+    ['2021-05-25',4.41,5318.48], ['2021-06-01',4.43,5341.68], ['2021-06-08',4.49,5232.12], ['2021-06-16',4.44,5080.49],
+    ['2021-06-23',4.42,5147.39], ['2021-06-30',4.31,5224.04], ['2021-07-07',4.42,5140.49], ['2021-07-14',4.68,5083.08],
+    ['2021-07-21',4.64,5144.04], ['2021-07-28',5.15,4760.48], ['2021-08-04',4.98,4978.85], ['2021-08-11',4.87,5015.34],
+    ['2021-08-18',5.07,4894.24], ['2021-08-25',5.10,4898.16], ['2021-09-01',5.53,4869.46], ['2021-09-08',5.29,4972.13],
+    ['2021-09-15',5.39,4867.32], ['2021-09-24',5.50,4849.43], ['2021-10-08',5.31,4929.94], ['2021-10-15',5.26,4932.11],
+    ['2021-10-22',5.19,4959.73], ['2021-10-29',5.24,4908.77], ['2021-11-05',5.52,4842.35], ['2021-11-12',5.41,4888.37],
+    ['2021-11-19',5.40,4890.06], ['2021-11-26',5.57,4860.13], ['2021-12-03',5.45,4901.02], ['2021-12-10',5.26,5055.12],
+    ['2021-12-17',4.90,4954.76], ['2021-12-24',4.96,4921.34], ['2021-12-31',5.00,4940.37], ['2022-01-10',5.06,4844.05],
+    ['2022-01-17',5.21,4767.28], ['2022-01-24',5.29,4786.74], ['2022-02-07',5.43,4634.09], ['2022-02-14',5.43,4551.69],
+    ['2022-02-21',5.28,4634.31], ['2022-02-28',5.45,4581.65], ['2022-03-07',5.75,4352.78], ['2022-03-14',6.16,4174.76],
+    ['2022-03-21',5.98,4258.75], ['2022-03-28',6.12,4148.47], ['2022-04-06',5.94,4263.84], ['2022-04-13',6.15,4139.74],
+    ['2022-04-20',6.22,4070.79], ['2022-04-27',6.59,3895.54], ['2022-05-09',6.51,3877.44], ['2022-05-16',6.37,3956.54],
+    ['2022-05-23',6.24,4053.98], ['2022-05-30',6.30,4029.02], ['2022-06-07',6.01,4179.13], ['2022-06-14',5.71,4222.31],
+    ['2022-06-21',5.56,4325.57], ['2022-06-28',5.27,4490.52], ['2022-07-05',5.28,4489.54], ['2022-07-12',5.62,4313.62],
+    ['2022-07-19',5.74,4269.34], ['2022-07-26',5.80,4245.98], ['2022-08-02',6.10,4107.02], ['2022-08-09',6.00,4156.29],
+    ['2022-08-16',6.32,4177.84], ['2022-08-23',6.39,4161.08], ['2022-08-30',6.55,4075.79], ['2022-09-06',6.58,4052.28],
+    ['2022-09-14',6.50,4065.36], ['2022-09-21',6.84,3903.73], ['2022-09-28',6.87,3828.71], ['2022-10-12',6.94,3784.31],
+    ['2022-10-19',7.04,3776.53], ['2022-10-26',7.45,3656.90], ['2022-11-02',7.37,3677.81], ['2022-11-09',7.26,3714.27],
+    ['2022-11-16',6.89,3834.39], ['2022-11-23',6.99,3773.53], ['2022-11-30',6.66,3853.04], ['2022-12-07',6.47,3958.44],
+    ['2022-12-14',6.47,3954.89], ['2022-12-21',6.77,3830.54], ['2022-12-28',6.66,3871.26], ['2023-01-05',6.48,3968.58],
+    ['2023-01-12',6.35,4017.87], ['2023-01-19',6.08,4156.01], ['2023-02-02',6.04,4181.15], ['2023-02-09',6.13,4130.86],
+    ['2023-02-16',6.18,4093.49], ['2023-02-23',6.10,4103.65], ['2023-03-02',6.02,4117.74], ['2023-03-09',6.17,4019.85],
+    ['2023-03-16',6.26,3939.15], ['2023-03-23',6.09,4039.09], ['2023-03-30',6.14,4038.53], ['2023-04-07',5.88,4123.28],
+    ['2023-04-14',5.88,4092.00], ['2023-04-21',5.87,4032.57], ['2023-04-28',6.03,4029.09], ['2023-05-10',6.01,3996.87],
+    ['2023-05-17',6.18,3960.16], ['2023-05-24',6.46,3859.09], ['2023-05-31',6.53,3798.54], ['2023-06-07',6.51,3789.34],
+    ['2023-06-14',6.52,3864.02], ['2023-06-21',6.55,3864.03], ['2023-06-30',6.60,3842.45], ['2023-07-07',6.62,3825.70],
+    ['2023-07-14',6.46,3899.10], ['2023-07-21',6.71,3821.91], ['2023-07-28',6.30,3992.74], ['2023-08-04',6.27,4020.58],
+    ['2023-08-11',6.56,3884.25], ['2023-08-18',6.82,3784.00], ['2023-08-25',6.92,3709.15], ['2023-09-01',6.64,3791.49],
+    ['2023-09-08',6.66,3739.99], ['2023-09-15',6.68,3708.78], ['2023-09-22',6.57,3738.93], ['2023-10-09',6.71,3684.73],
+    ['2023-10-16',6.75,3626.60], ['2023-10-23',7.10,3474.24], ['2023-10-30',7.02,3583.77], ['2023-11-06',6.92,3632.61],
+    ['2023-11-13',7.04,3579.41], ['2023-11-20',7.03,3576.32], ['2023-11-27',7.12,3511.94], ['2023-12-04',7.24,3460.14],
+    ['2023-12-11',7.37,3419.45], ['2023-12-18',7.60,3329.37], ['2023-12-25',7.58,3347.45], ['2024-01-02',7.45,3386.35],
+    ['2024-01-09',7.70,3292.50], ['2024-01-16',7.66,3300.88], ['2024-01-23',7.89,3231.93], ['2024-01-30',7.66,3245.04],
+    ['2024-02-06',7.45,3311.69], ['2024-02-21',7.10,3456.87], ['2024-02-28',7.23,3450.26], ['2024-03-06',7.06,3551.05],
+    ['2024-03-13',7.02,3572.36], ['2024-03-20',7.00,3585.38], ['2024-03-27',7.13,3502.79], ['2024-04-03',6.91,3567.80],
+    ['2024-04-12',7.10,3475.84], ['2024-04-19',6.88,3541.66], ['2024-04-26',6.81,3584.27], ['2024-05-08',6.56,3630.22],
+    ['2024-05-15',6.60,3626.06], ['2024-05-22',6.46,3684.45], ['2024-05-29',6.58,3613.52], ['2024-06-05',6.64,3594.79],
+    ['2024-06-13',6.76,3526.13], ['2024-06-20',6.83,3503.28], ['2024-06-27',6.94,3454.12], ['2024-07-04',6.78,3445.81],
+    ['2024-07-11',6.77,3468.17], ['2024-07-18',6.66,3520.93], ['2024-07-25',7.00,3399.27], ['2024-08-01',7.10,3419.27],
+    ['2024-08-08',7.27,3342.94], ['2024-08-15',7.19,3341.95], ['2024-08-22',7.22,3313.14], ['2024-08-29',8.08,3277.68],
+    ['2024-09-05',7.58,3257.76], ['2024-09-12',7.91,3172.47], ['2024-09-23',7.73,3212.76], ['2024-09-30',5.95,4017.85],
+    ['2024-10-14',5.99,3961.34], ['2024-10-21',6.15,3935.20], ['2024-10-28',6.15,3964.16], ['2024-11-04',6.36,3944.76],
+    ['2024-11-11',6.13,4131.13], ['2024-11-18',6.34,3950.38], ['2024-11-25',6.60,3848.09], ['2024-12-02',6.50,3947.63],
+    ['2024-12-09',6.45,3966.57], ['2024-12-16',6.66,3911.84], ['2024-12-23',6.62,3933.57], ['2024-12-30',6.44,3999.05],
+    ['2025-01-07',6.94,3796.11], ['2025-01-14',6.91,3820.54], ['2025-01-21',6.93,3832.61], ['2025-02-05',7.01,3795.08],
+    ['2025-02-12',6.78,3919.86], ['2025-02-19',6.71,3940.16], ['2025-02-26',6.68,3959.94], ['2025-03-05',6.79,3902.57],
+    ['2025-03-12',6.64,3927.23], ['2025-03-19',6.40,4010.17], ['2025-03-26',6.69,3919.36], ['2025-04-02',6.80,3884.39],
+    ['2025-04-10',7.21,3735.12], ['2025-04-17',7.08,3772.22], ['2025-04-24',7.05,3784.36], ['2025-05-06',7.04,3808.54],
+    ['2025-05-13',6.83,3896.26], ['2025-05-20',6.78,3898.17], ['2025-05-27',6.90,3839.40], ['2025-06-04',6.90,3868.74],
+    ['2025-06-11',6.83,3894.63], ['2025-06-18',6.69,3874.97], ['2025-06-25',6.45,3960.07], ['2025-07-02',6.49,3943.68],
+    ['2025-07-09',6.40,3991.40], ['2025-07-16',6.38,4007.20], ['2025-07-23',6.18,4119.77], ['2025-07-30',6.26,4151.24],
+    ['2025-08-06',6.30,4113.49], ['2025-08-13',6.24,4176.58], ['2025-08-20',6.03,4271.40], ['2025-08-27',5.90,4386.13],
+    ['2025-09-03',5.91,4459.83], ['2025-09-10',5.74,4445.36], ['2025-09-17',5.69,4551.02], ['2025-09-24',5.66,4566.07],
+    ['2025-10-09',5.55,4709.48], ['2025-10-16',5.56,4618.42], ['2025-10-23',5.53,4606.34], ['2025-10-30',5.47,4709.91],
+    ['2025-11-06',5.29,4693.40], ['2025-11-13',5.25,4702.07], ['2025-11-20',5.40,4564.95], ['2025-11-27',5.46,4515.40],
+    ['2025-12-04',5.44,4546.57], ['2025-12-11',5.51,4552.18], ['2025-12-18',5.45,4552.79], ['2025-12-25',5.37,4642.54],
+    ['2026-01-05',5.24,4717.75], ['2026-01-12',5.17,4789.92], ['2026-01-19',5.31,4734.46], ['2026-01-26',5.35,4706.96],
+    ['2026-02-02',5.48,4605.98], ['2026-02-09',5.34,4719.06], ['2026-02-24',5.37,4707.54], ['2026-03-03',5.35,4655.90],
+    ['2026-03-10',5.40,4674.76], ['2026-03-17',5.35,4637.44], ['2026-03-24',5.64,4474.72], ['2026-03-31',5.84,4450.05],
+    ['2026-04-08',5.69,4595.56], ['2026-04-15',5.62,4685.25], ['2026-04-22',5.55,4799.63], ['2026-04-29',5.45,4810.35],
+    ['2026-05-11',5.10,4951.84], ['2026-05-18',5.26,4833.52], ['2026-05-25',5.23,4921.60], ['2026-06-01',5.33,4844.26],
+    ['2026-06-08',5.45,4713.64], ['2026-06-15',5.16,4891.71], ['2026-06-23',5.23,4919.39], ['2026-06-30',5.33,4979.43],
+    ['2026-07-07',5.42,4792.26], ['2026-07-14',5.32,4796.50], ['2026-07-21',5.30,4739.23], ['2026-07-28',5.41,4569.52],
+    ['2026-08-04',5.47,4600.93], ['2026-08-11',5.37,4663.79], ['2026-08-18',5.37,4725.81], ['2026-08-25',5.61,4552.03],
+    ['2026-09-01',5.71,4611.44], ['2026-09-08',5.83,4558.74], ['2026-09-15',5.97,4450.04], ['2026-09-22',5.89,4544.59],
+    ['2026-09-30',6.05,4357.62], ['2026-10-14',6.13,4217.68], ['2026-10-15',6.18,4166.01],
+  ];
+
+  /* 《高性价比人生指南》随机一句：章节、正文、站内锚点 */
+  const LIVE_BETTER_SECTIONS = ["不要早死", "不要慢慢死", "不要浪费精力", "不要浪费时间", "不要浪费钱", "反面清单", "没钱的时候怎么活", "别把自己搭进去：法律与财产安全", "普通人容易踩的法律红线", "恋爱和结婚划不划算", "程序员和技术人容易踩的红线", "创业与做生意：别把家底赔进去", "紧急情况：先做什么", "账号与信息安全", "租房与买房", "得了慢性病之后怎么活", "家里有老人", "养孩子划不划算", "在职、离职和工伤", "刚出生的孩子怎么带", "出国、旅行与境外安全", "怎么放松：娱乐场所和减压", "学什么技能划算", "看病：怎么少花钱少走弯路", "人走了以后要办什么", "做一个网站或平台：资质、备案和服务器", "怀孕和生产：从发现怀孕到出院办证", "别为了外形把身体搞坏", "遭遇重大打击之后", "上学以后的孩子", "十八岁之后有哪几条路", "出国留学：身份、打工、保险和回国认证", "残疾之后怎么活", "家里的常备药别吃出事"];
+  const LIVE_BETTER = [
+    [0, "系安全带，前排后排都系", "s1-1"], [0, "骑摩托车、电动自行车戴头盔并扣好", "s1-2"], [0, "装烟雾报警器；冬天在室内烧煤、用燃气取暖的再装一氧化碳报警器", "s1-3"],
+    [0, "燃气软管和灶具到期就换，不自己改管道，燃气公司上门推销可以直接拒绝", "s1-4"], [0, "不采、不买、不吃野生蘑菇，任何「土办法鉴别」都不成立", "s1-5"], [0, "电动自行车不推进楼道、不进电梯、不在家里充电", "s1-6"],
+    [0, "量血压，高了就吃药降到达标", "s1-7"], [0, "35 岁以后只要超重，就去查一次空腹血糖，正常也每三年再查", "s1-8"], [0, "开车不超速、不酒驾，不看手机，困了就停车歇", "s1-9"],
+    [0, "坐车时给 4 岁以下儿童用安全座椅，不要抱在怀里", "s1-10"], [0, "家里有小孩就给窗户和阳台装限位器，纱窗不算防护", "s1-11"], [0, "儿童近水不离视线，划船、野泳穿救生衣", "s1-12"],
+    [0, "60 岁以上练平衡和腿部力量，改造家里的浴室和楼梯", "s1-13"], [0, "查乙肝两对半，没有抗体就打疫苗", "s1-14"], [0, "被铁钉、木刺扎到或者伤口沾了泥土，当天去处理，顺便问破伤风要不要打", "s1-15"],
+    [0, "女性接种 HPV 疫苗，越早越好", "s1-16"], [0, "女性 40 岁起做乳腺癌筛查，每两年一次钼靶", "s1-17"], [0, "30 岁以上女性做宫颈癌筛查，优先 HPV 检测", "s1-18"],
+    [0, "45 到 50 岁起做结直肠癌筛查，做查大便隐血的粪便免疫化学检测或者肠镜", "s1-19"], [0, "有心血管病的人和老年人每年打流感疫苗", "s1-20"], [0, "50 岁以后打带状疱疹疫苗", "s1-21"],
+    [0, "65 岁以上打肺炎球菌疫苗", "s1-22"], [0, "查幽门螺杆菌，阳性就根除", "s1-23"], [0, "重度吸烟者每年做一次低剂量胸部 CT", "s1-24"],
+    [0, "抑郁或有自杀念头时打 12356，家里不囤安眠药和农药", "s1-25"], [0, "备齐灭火器、灭火毯、逃生呼吸面罩和急救包，每年检查一次", "s1-26"], [0, "尿里出现肉眼看得见的血，哪怕不疼、哪怕第二天就干净了，也要去查一次", "s1-27"],
+    [0, "勃起功能出了问题，先去查心血管，别当成单纯的「那方面的事」", "s1-28"], [0, "减重、戒烟、把血压血糖控住，勃起功能能跟着好转", "s1-29"], [0, "性行为全程用安全套，不和别人共用针具", "s1-30"],
+    [0, "有过高危行为就去查一次艾滋病，疾控中心免费、结果保密", "s1-31"], [0, "自杀念头一冒出来先告诉身边的一个人，把这几十分钟交出去", "s1-32"], [0, "别把「救回来」当成兜底：喝农药、吸煤气之后急诊能保住的是命，可能保不住肺和脑子", "s1-33"],
+    [0, "别拿「躺几天就好」赌高处坠落：进了创伤 ICU 的人多数活下来，代价按年算", "s1-34"], [0, "别拿「少一个肾没什么」换钱：剩下那个要替两个干活，卖过肾的人事后 86% 说身体变差", "s1-35"], [0, "不捡、不拆、不卖来路不明的金属件，带三叶草警示标志的离远点", "s1-36"],
+    [0, "赌到借钱还赌、心情一直低落时，先打 12356，再把银行卡和支付密码交给家人管", "s1-37"], [0, "有高危性行为的男男性行为者，去艾滋病定点医院问暴露前预防药，按时吃能少感染约七成", "s1-38"], [0, "65 岁以上的女性去做一次双能 X 线骨密度检查，绝经后有骨质疏松危险因素的不用等到 65 岁", "s1-39"],
+    [0, "查出骨质疏松，或者轻轻一摔就骨折过，就请医生开抗骨质疏松药并坚持用，别拿补钙代替", "s1-40"], [0, "上野外冰面前先打孔量厚度，不到 15 厘米别上，河上的冰和冰钓洞边别去", "s1-41"], [0, "装好护罩、戴上护目镜加面屏再用角磨机，双手握稳，别装木工锯片切木头", "s1-42"],
+    [0, "直接问身边情绪不对的人「你有没有想过自杀」，问了不会让他更想", "s1-43"], [0, "心慌、心跳乱就去做心电图，查出房颤请医生评估吃抗凝药防中风，别拿阿司匹林代替", "s1-44"], [0, "成年人查一次丙肝抗体，阳性就再查核酸，确诊了吃 8 到 12 周口服药，绝大多数能治好", "s1-45"],
+    [0, "下化粪池、窨井、污水池、菜窖地窖、发酵罐之前先打开通风，有人倒在里面别跟着下去，打 119 和 120", "s1-46"], [0, "45 岁以上，住在胃癌食管癌高发地区、有家族史或幽门螺杆菌阳性的，去做胃镜筛查", "s1-47"], [0, "泡发的木耳、银耳当顿吃完别过夜，河粉、肠粉这类湿米粉买来当天吃，家里不自制酵米面", "s1-48"],
+    [1, "戒烟，越早越好", "s2-1"], [1, "别在家里和车里抽烟，也别让客人在家里抽", "s2-2"], [1, "戒烟别光靠忍，先去拿药：吃伐尼克兰的成功率能翻一倍多", "s2-3"],
+    [1, "定一个戒烟日，到那天一次停掉，别先慢慢减", "s2-4"], [1, "去戒烟门诊，或者打 12320 问当地有没有戒烟服务", "s2-5"], [1, "已经戒不掉再考虑电子烟，本来不吸烟的人别碰", "s2-6"],
+    [1, "不喝含糖饮料，换成无糖的也不算解决", "s2-7"], [1, "不嚼槟榔", "s2-8"], [1, "把家里的食盐换成低钠盐（钾盐）", "s2-9"],
+    [1, "认真刷牙，每天清一次牙缝，缺了牙去看牙医", "s2-10"], [1, "每天走到 7000–8000 步，或者每周累计快走 150–300 分钟", "s2-11"], [1, "成年后定期查血脂，40 岁前每 2 到 5 年一次、40 岁起每年一次；有高血压、高血脂就按医嘱规律吃药，别自行停", "s2-12"],
+    [1, "每晚睡 7 小时左右，作息固定", "s2-13"], [1, "常打网球、羽毛球、乒乓球这类球拍类运动", "s2-14"], [1, "把爬楼梯、快走赶路这类零碎的用力活动攒到每天四五分钟", "s2-15"],
+    [1, "每周做 30–60 分钟力量训练", "s2-16"], [1, "别连着坐太久，隔一阵起身动一动", "s2-17"], [1, "少吃加工肉（火腿、培根、香肠、午餐肉）", "s2-18"],
+    [1, "少喝或不喝酒", "s2-19"], [1, "每天都喝酒、一停就手抖心慌的人，别自己硬戒", "s2-20"], [1, "想少喝酒，先把一周喝了多少数出来，再找医生聊几分钟", "s2-21"],
+    [1, "每天吃一小把坚果", "s2-22"], [1, "把一部分红肉换成鱼和禽肉", "s2-23"], [1, "把一部分精米白面换成全谷物", "s2-24"],
+    [1, "每周喝三次以上茶", "s2-25"], [1, "每天喝三到四杯咖啡，咖啡因总量不超过 400 mg，不加糖不加奶盖", "s2-26"], [1, "每天吃够 5 份（约 400 g）水果蔬菜", "s2-27"],
+    [1, "少吃超加工食品（薯片、方便面、糕点、速食）", "s2-28"], [1, "做饭、取暖不烧煤和柴，换成电或燃气", "s2-29"], [1, "热的东西放一放再喝，不喝滚烫的茶、汤和咖啡", "s2-30"],
+    [1, "白天出门晒晒太阳，别整天不见光", "s2-31"], [1, "把 BMI 控制在 20–25，超重就减", "s2-32"], [1, "每周吃四次以上辣椒", "s2-33"],
+    [1, "每天喝一两份奶或酸奶", "s2-34"], [1, "鸡蛋不用戒，一天一个以内就行", "s2-35"], [1, "有条件就泡澡，别只冲淋浴", "s2-36"],
+    [1, "把午睡控制在半小时内，别超过一小时，非得睡一两小时才撑得住就去查原因", "s2-37"], [1, "熬夜之后第二天晚上就补觉，别攒到周末", "s2-38"], [1, "上夜班干得越久心血管风险越高，能转岗就趁早转", "s2-39"],
+    [1, "买预包装、有 SC 编号的食用油，不买小作坊散装自榨花生油", "s2-40"], [1, "做饭用植物油代替猪油和黄油，不必为了健康换着买油，也别指望亚麻籽油护心", "s2-41"], [1, "炒菜、煎炸时打开抽油烟机，从开火一直开到做完", "s2-42"],
+    [1, "绝经前后潮热盗汗影响到生活，就去妇科评估激素治疗，别硬扛也别自己买药，更别拿它防心脏病", "s2-43"], [1, "本来就想养狗的，把每天遛狗算进走路量，别为了长寿专门去养狗", "s2-44"], [1, "查出糖尿病前期（血糖偏高、还没到糖尿病），就靠少吃、减重、多动把糖尿病往后推，每半年复查一次血糖", "s2-45"],
+    [1, "家里的花生、玉米、坚果和米面发了霉，整包扔掉，别挑掉霉的吃剩下的；嚼到发苦的坚果马上吐掉", "s2-46"], [1, "别吃淡水鱼虾做的鱼生、生鱼片、鱼生粥和醉虾，常吃过的去医院查一次肝吸虫，查出来按医嘱吃吡喹酮", "s2-47"], [2, "关掉非必要通知，工作时把手机放到视线之外", "s3-1"],
+    [2, "固定起床时间，周末也一样", "s3-2"], [2, "每晚睡够 7 到 8 小时，别把 6 小时当作够用", "s3-3"], [2, "下午两点以后不碰咖啡因", "s3-4"],
+    [2, "把邮件和消息改成每天固定几次批量处理", "s3-5"], [2, "做需要连续思考的工作时，把哪怕几秒钟的打断也挡在外面", "s3-6"], [2, "一次只做一件事，不要边开会边回消息", "s3-7"],
+    [2, "睡前一小时不看发光屏幕，要看就看纸书或不开屏幕灯的墨水屏", "s3-8"], [2, "到点就睡，不为游戏、短视频、色情内容熬夜", "s3-9"], [2, "深夜不做重大决定、不发要紧的消息", "s3-10"],
+    [2, "下午困了就睡 10 分钟，不要睡半小时", "s3-11"], [2, "在开放式办公室工作时用耳塞或找安静房间做需要记忆的活", "s3-12"], [2, "别把每周工作时间一味往上加：过了 49 小时上下，多干一小时多出的活越来越少", "s3-13"],
+    [2, "发现自己在反复回想同一件糟心事时，换个需要动手的活", "s3-14"], [2, "把「事情肯定会更糟」这类念头当症状看，不当事实看", "s3-15"], [2, "减少让你消耗的人际关系，学会拒绝不想接的请求", "s3-16"],
+    [2, "生气时先离场，把对方当天气而不是当敌人", "s3-17"], [2, "情绪低落时先做性价比最高的几件事：动起来、多见光、按时睡、找人说、打 12356", "s3-18"], [2, "把警察、医生、柜员当成按规则上班的人，别当成角色：能推动事情的是文书和期限，不是情绪", "s3-19"],
+    [2, "别把「别人过得怎么样」当每日必读：给刷同龄人动态的应用设限或关掉", "s3-20"], [2, "觉得「所有人都看见我出丑了」的时候，把这个估计除以二", "s3-21"], [2, "把「别人要求我做到完美」当症状看，不当事实看", "s3-22"],
+    [2, "生气时别靠打沙袋、跑一圈来发泄，先让身体慢下来", "s3-23"], [2, "心里压着一件事，可以连着几天把想法和感受写下来，但别指望它治病", "s3-24"], [2, "痛经就吃布洛芬这类止痛药，别硬扛；痛到耽误上班上学、吃三个月药也压不住，就去妇科查", "s3-25"],
+    [2, "长期失眠（一周三晚以上、拖了三个月以上）先做失眠的认知行为治疗，别一上来就长期吃安眠药", "s3-26"], [2, "打鼾很响、有人看见你睡着时憋气、白天困到开车都想睡的，去医院做睡眠监测查睡眠呼吸暂停，中重度的夜里戴呼吸机", "s3-27"], [3, "把「打算做」写成「几点、在哪、遇到什么就做什么」", "s4-1"],
+    [3, "开工前写下退出条件", "s4-2"], [3, "决定是否继续时，只看未来投入和未来回报，不看已投入多少", "s4-3"], [3, "估工期时按过去同类任务的实际耗时估，不按计划推", "s4-4"],
+    [3, "会前发议程，没议程的会不开；能站着开就站着开", "s4-5"], [3, "砍会议数量，能用文字异步解决的不开会", "s4-6"], [3, "把大任务拆成子任务再估时、再开工", "s4-7"],
+    [3, "给没有外部截止的事自己定一个日期", "s4-8"], [3, "把拖延当成在躲开难受，不要当成不够努力", "s4-9"], [3, "把要用的东西摆到手边，把不想碰的挪远，别指望当场忍住", "s4-10"],
+    [3, "想让自己做到就把钱押上，但先问自己肯不肯押", "s4-11"], [3, "新习惯按月算，不要按「21 天」算", "s4-12"], [3, "拖延已经影响生活的，用有随机试验支持的自助材料，不用非找治疗师", "s4-13"],
+    [3, "用自己的时薪决定哪些家务外包", "s4-14"], [3, "给短视频和无目的刷屏设硬上限", "s4-15"], [3, "不看电视和滚动新闻，需要的信息定时集中看", "s4-16"],
+    [3, "花一次时间学常用软件的键盘快捷键和自动化", "s4-17"], [3, "选住处时把通勤时长放在前面，缩短单程通勤", "s4-18"], [4, "关掉所有自动续费，改为到期手动续", "s5-1"],
+    [4, "每年三月到六月做一次个税汇算，专项附加扣除该填的填", "s5-2"], [4, "公积金不只用来买房：租房、装修、物业费都能提，2026 年 9 月 20 日起按新条例办", "s5-3"], [4, "每年重算一次手机和宽带套餐，用不上的降档，运营商不给转就投诉", "s5-4"],
+    [4, "不买彩票", "s5-5"], [4, "看到「高收益」「保本」「稳赚」直接走开", "s5-6"], [4, "不用信用卡最低还款，不为消费开分期或消费贷；非借不可，先把利息换成年化利率再比", "s5-7"],
+    [4, "不给主播打赏、不给游戏充值、不冲动下单", "s5-8"], [4, "孩子用手机充值打赏，八岁以上的大额支出未经家长追认可以主张退", "s5-9"], [4, "教孩子记一句话：网上任何人让你拿家长的手机去操作、去报验证码，都是骗子", "s5-10"],
+    [4, "拒绝电子产品的延长保修（延保）", "s5-11"], [4, "优先选通过一致性评价的仿制药和集采中选药", "s5-12"], [4, "在医保 App 上办一次家庭共济绑定，职工医保个人账户的钱就能给配偶、父母、子女看病买药", "s5-13"],
+    [4, "喝烧开的自来水，不常年订饮水机用的桶装水、买瓶装水", "s5-14"], [4, "不频繁交易股票，行情暴涨暴跌的时候更要少动手", "s5-15"], [4, "不借钱投资、不加杠杆、不买自己看不懂的", "s5-16"],
+    [4, "用宽基指数基金替代主动管理基金作为长期底仓（长期拿着不动的那部分钱）", "s5-17"], [4, "同类基金优先选费率低的", "s5-18"], [4, "别把钱押在一只股票、一个平台、一套房上", "s5-19"],
+    [4, "交个税且税率到 10% 及以上的人开个人养老金账户，每年最多 12000 元能在税前扣掉；不交个税或税率只有 3% 的人开了不划算", "s5-20"], [4, "健身房按次付费或短周期付费，除非有一年以上的稳定记录", "s5-21"], [4, "交预付款要签书面合同；商家出风险要停收，跑路前你有权要回未消费的余额", "s5-22"],
+    [4, "大额非必需购买设 24 小时冷静期，网购善用七日无理由退货", "s5-23"], [4, "不为「划线价」和大促囤货", "s5-24"], [4, "保险优先买消费型，把「返还」「分红」当作不保证的部分", "s5-25"],
+    [4, "三者险买够：交强险限额全国统一且不高，超出的部分从你自己家里出", "s5-26"], [4, "先存出 3 到 6 个月生活费的应急金，放在随时能取的地方", "s5-27"], [4, "提前还房贷之前先做一道比较题，不要凭感觉", "s5-28"],
+    [4, "网购认平台规则和法条，不认主播和「好评」", "s5-29"], [4, "直播间买的东西出了问题，先向平台要卖家和带货人的信息，平台必须给", "s5-30"], [4, "买到不安全的食品，除了退钱还能要十倍价款，增加赔偿不足一千元的按一千元算", "s5-31"],
+    [4, "买大件前先查国家抽检通报、3C 认证和能效标识", "s5-32"], [4, "手串、玉石、名表、潮玩按「花掉的钱」算账，不按「存下的钱」算", "s5-33"], [4, "珠宝玉石只认带 CMA 标志的检测报告，并到发证部门官网核一下这家机构", "s5-34"],
+    [4, "盲盒、抽卡这类随机销售，按「这笔钱不会回来」算", "s5-35"], [4, "在意食品里加了什么，就买预包装的：散装柜台法律上不要求标配料表", "s5-36"], [4, "亏了的股票也要按事先定好的规则卖掉，不靠往下补仓摊平成本翻身", "s5-37"],
+    [4, "想买美股这类海外资产，走 QDII 基金或港股通，别去境外券商开户，也别拿每年的换汇额度去买", "s5-38"], [4, "只给自己扛不住的损失买保险，扛得住的损失用应急金兜着", "s5-39"], [4, "家里有人靠你的收入过日子，先给挣钱的人买定期寿险，别先给孩子买", "s5-40"],
+    [4, "签了一年以上的人身险又后悔，在犹豫期内退掉，保费基本全退", "s5-41"], [4, "在银行柜台签字前，先看清手里的是存款还是保险", "s5-42"], [4, "想退保就自己找保险公司办，别找「代理退保」，觉得被误导了打 12378 投诉", "s5-43"],
+    [4, "保单上把受益人写成具体的人，出了事记得去领钱：寿险 5 年、其他保险 2 年内要主张", "s5-44"], [4, "别拿钱买比特币、泰达币这类虚拟货币，别人拉你一起投也不跟：交易不受法律保护，亏了打官司也要不回来", "s5-45"], [4, "没单位的人自己交职工养老保险，按最低档交、先把年限交够最划算；别当成一交就赚，按最低档也要领约 10 年才回本", "s5-46"],
+    [4, "买新车提车时当场验车，收好发票和三包凭证；头 7 天、头 60 天里出大毛病，可以要求换车或退车", "s5-47"], [4, "在车商那里买二手车，先查出险和维修记录，合同里写明「不是事故车、泡水车」；被隐瞒了可以要求退车并赔三倍车款", "s5-48"], [4, "在 4S 店买车，不交「金融服务费」，保险、贷款、上牌也不必在店里办", "s5-49"],
+    [4, "跟团游被导游带进没约定的购物店买了东西，回来 30 天内找旅行社退货，货款让旅行社先垫", "s5-50"], [5, "不要为了长寿或防心血管病吃复合维生素", "s6-1"], [5, "不要为了预防心血管病吃普通鱼油", "s6-2"],
+    [5, "不要为了长寿给不缺维生素 D 的人补维生素 D", "s6-3"], [5, "不要为了防癌吃抗氧化补剂（β 胡萝卜素、维生素 E、维生素 A）", "s6-4"], [5, "不要指望氨糖（葡萄糖胺）/软骨素治膝关节炎", "s6-5"],
+    [5, "不要靠维生素 C 预防感冒", "s6-6"], [5, "不要给没有症状的自己做「全身 PET-CT」或「肿瘤标志物套餐」", "s6-7"], [5, "不要指望手环/手表的运动量化帮你减重", "s6-8"],
+    [5, "不要为了「更健康」花溢价买有机食品", "s6-9"], [5, "不要花大钱买保健品、膏方、滋补品来「调理身体」", "s6-10"], [5, "不要在没有肠道问题时长期吃益生菌", "s6-11"],
+    [5, "不要为了「增强免疫力」逼自己洗冷水澡", "s6-12"], [5, "不要买排毒、清肠、酵素、碱性水这类产品", "s6-13"], [5, "不要为了凑够「每天 8 杯水」强迫自己喝水", "s6-14"],
+    [5, "不要花钱算命、看塔罗、看星座来做决定", "s6-15"], [5, "不要买防蓝光眼镜来「保护视力」，也不要相信「对着屏幕干几个月眼睛就废了」，但眼睛胀痛发红要当急症", "s6-16"], [5, "不要把献血当保健：「排毒、降血脂、防心梗」没有随机试验支持，频繁献倒是真会缺铁", "s6-17"],
+    [5, "不要靠通用体检套餐防病，按年龄性别做那几项有证据的筛查", "s6-18"], [5, "不要因为体检查出尿酸高、但从没痛过，就开始吃降尿酸药", "s6-19"], [5, "不要因为体检查出胆囊结石、但从没疼过，就去预防性切胆囊", "s6-20"],
+    [5, "不要为了防肾结石把钙戒掉", "s6-21"], [5, "不要为了「转运」「招财」「养人」买水晶、手串、貔貅这类物件", "s6-22"], [5, "不要指望买东西改善心情或身份感", "s6-23"],
+    [5, "不要为了「在周围人里往上挪一档」多花钱换房、换车、换圈子", "s6-24"], [5, "不要相信「意志力像肌肉，用一会儿就没了」", "s6-25"], [5, "不要指望吃早餐或 16:8 轻断食帮你控制体重，吃饭时间挑你能长期坚持的", "s6-26"],
+    [5, "不要相信「手淫伤身」「戒色才能变好」，真正要看的是有没有耽误睡觉、工作和关系", "s6-27"], [5, "不要花钱做「性取向矫正」「同性恋治疗」，也不要把家里人送去", "s6-28"], [5, "不要指望学会「正确搬运姿势」、上搬运培训就能防腰痛，要减的是搬的重量和次数，平时多锻炼", "s6-29"],
+    [5, "不要指望骨折之后猛补钙、喝骨头汤能让骨头长得更快", "s6-30"], [5, "不要指望靠 AI 聊天机器人自己判断病情和法律问题，看病、打官司、花大钱之前，把它说的依据找到原文核一遍", "s6-31"], [5, "不要因为「人随时会死，早点把钱花完才快乐」就不存钱，三十岁的人约九成能活到六十岁", "s6-32"],
+    [5, "不要因为中老年人膝盖慢慢疼起来（骨关节炎、退化性半月板撕裂）就做关节镜清理或切半月板，先减重、练大腿肌肉", "s6-33"], [5, "不要指望长期失眠靠吃褪黑素治好，它平均只让人早睡着约 7 分钟，先做失眠的认知行为治疗", "s6-34"], [5, "不要因为感冒、普通发烧就要求输液，也不要在换季时去输液「冲血管」「通血管」", "s6-35"],
+    [6, "失业了先在线申领失业保险金", "s7-1"], [6, "被欠薪先投诉劳动监察，再申请劳动仲裁，两条路都不收费，多数案子几个月内有结果", "s7-2"], [6, "打不起官司就申请法律援助，讨薪、赡养费、工伤这类案子本来就在范围内", "s7-3"],
+    [6, "走投无路时去救助站，管吃住和返乡车票", "s7-4"], [6, "找活先用免费的公共就业服务和零工市场，不找收费中介", "s7-5"], [6, "突发变故先申请临时救助", "s7-6"],
+    [6, "收入低于当地低保线就申请低保，比低保线略高或者看病上学花得多的申请医疗、教育、住房、就业救助", "s7-7"], [6, "持残疾人证的去申请残疾人两项补贴", "s7-8"], [6, "居民医保每年 400 元不要断，困难户可减免", "s7-9"],
+    [6, "得了重病先走医保、大病保险、医疗救助和异地备案，不碰网贷", "s7-10"], [6, "身份证丢了立刻补办，急用先领临时身份证", "s7-11"], [6, "办失业登记后争取就业困难人员认定，拿社保补贴或公益性岗位", "s7-12"],
+    [6, "失业期间去领职业培训补贴、就业见习补贴和社保补贴，别自费上培训班", "s7-13"], [6, "求职别只投简历，用系统方法：学技巧、定目标、找人帮", "s7-14"], [6, "不交押金、不押证件、不签「培训贷」、不进传销、不借高利贷", "s7-15"],
+    [6, "住房困难先排公租房", "s7-16"], [6, "把住和吃压到最低：合租月租代替日租，自炊和助餐食堂代替外卖", "s7-17"], [6, "社保断缴不要慌：养老按累计算，医保按规则补", "s7-18"],
+    [6, "坐过牢、破过产、上过失信名单，法律上都有重来的路，先把手续走完", "s7-19"], [6, "大病之前，基本医保之外配一份一年期医疗险或重疾险，看清「保证续保」四个字", "s7-20"], [6, "实在没地方睡，24 小时营业场所只能应急一晚，优先去救助站", "s7-21"],
+    [6, "被欠了工钱，先分清雇你的是谁：没执照的作坊和包工头照样找劳动监察，给家庭或个人干私活才去法院", "s7-22"], [6, "信用卡、网贷已经还不上，自己打银行或平台客服申请个性化分期或延期，别借新还旧，也别付钱找「停息挂账」「征信修复」「反催收」中介", "s7-23"], [7, "出了交通事故先停车、救人、报警，不要跑", "s8-1"],
+    [7, "发现被骗，立刻打 110 或 96110 要求止付，别先自己查", "s8-2"], [7, "记住反诈硬规则：来电不轻信、信息不透露、链接不点击、转账多核实，七种最常见的骗局都是这个形状", "s8-3"], [7, "视频里看见脸、电话里听见声音都不算核实，涉及转账先挂断，用自己通讯录里的旧号码打回去", "s8-4"],
+    [7, "被指控或被传唤，先请律师，不私了、不删记录", "s8-5"], [7, "出了事主动去说清楚：自首最多能减四成刑，犯罪较轻的还能减更多甚至免罚，「躲过追诉期」这条路是堵死的", "s8-6"], [7, "喝了酒就不碰方向盘，包括电动车和「挪一下车」，也别把车借给喝了酒或没驾照的人开", "s8-7"],
+    [7, "不把银行卡、手机卡、支付账号借给任何人，「跑分」不是兼职", "s8-8"], [7, "每年免费查两次自己的征信报告，看有没有不是自己办的贷款和卡", "s8-9"], [7, "起了冲突先报警不动手，先动手的那个容易让对方的还手算成正当防卫", "s8-10"],
+    [7, "躲不掉的侵害可以还手，但只打正在动手的那个人，他停你就停", "s8-11"], [7, "跟谁结了怨——被欠薪、被开除、被坑了钱——走投诉、仲裁、起诉，别去找人算账", "s8-12"], [7, "再恨也别对不相干的人下手：驾车冲撞人群、在公共场所行凶按以危险方法危害公共安全定罪，起刑三年，死了人十年起步、最高死刑", "s8-13"],
+    [7, "冒出「拉个垫背的」「同归于尽」这种念头，当急症处理：离开现场，把车钥匙和刀交给别人，打 12356", "s8-14"], [7, "身边人说出「谁也别想好过」「带着孩子一起走」，别当气话：近亲属可以直接送诊，公安接到报警也必须管", "s8-15"], [7, "网上不骂人、不造谣、不转发没核实的事；被网暴先留证再报警", "s8-16"],
+    [7, "签字前把纸看完，不替人签字，不在空白纸上签", "s8-17"], [7, "借钱写清借条，替人担保前先想清楚自己愿不愿意替他还", "s8-18"], [7, "维权有期限：民事诉讼时效 3 年，劳动仲裁 1 年，过了对方一句「超过时效」就够", "s8-19"],
+    [7, "被起诉、被执行了，如实报财产、能还多少还多少，别把房和钱转给亲友或公司", "s8-20"], [7, "被限制消费或者被列入失信名单，先查清是按哪一条纳入的，能纠正的申请纠正", "s8-21"], [7, "网购、二手交易被骗，先平台投诉，再报警，再算值不值得起诉", "s8-22"],
+    [7, "恋爱和婚内的大额赠与，交付之前想清楚，交付之后原则上要不回", "s8-23"], [7, "彩礼走转账并备注，聊天记录留好；借婚姻要钱可以要回", "s8-24"], [7, "婚前财产不用怕，房子加名和父母出资先写清楚", "s8-25"],
+    [7, "结婚前核对对方婚姻状况，以结婚为幌子骗钱的按诈骗罪追究", "s8-26"], [7, "上门维修、验车、装修，先问价再动手，全程在旁边看着", "s8-27"], [7, "别当「挂名法人」，别把身份证借给人注册公司", "s8-28"],
+    [7, "出入境不帮陌生人带东西，不代收来路不明的包裹", "s8-29"], [7, "养狗必须牵绳：不牵绳出了事是无过错责任（你有没有错都要赔），赔到底。狗还要按时打狂犬病疫苗、办养犬登记", "s8-30"], [7, "对方喝到意识不清、睡着，或者可能不满 14 岁，就不要发生关系", "s8-31"],
+    [7, "发生关系、裸聊之后对方拿报警、发照片、告诉你单位来要钱，一分钱不给，一条记录不删，直接报警", "s8-32"], [7, "被人捏造事实举报，可以要求追究：够治安处罚的拘留 5 日起，够罪的判 3 年以下", "s8-33"], [7, "证据不足本来就应当判无罪，逼出来的口供应当排除；判了还有申诉和再审", "s8-34"],
+    [7, "被羁押后撤案、不起诉或者判无罪的，去申请国家赔偿，按天算钱", "s8-35"], [7, "自己是受害人去索赔，走 12315、起诉或者律师，别单独赴对方的约，别把「给钱」和「我不曝光」绑成一句话", "s8-36"], [7, "被网暴了：先开防护、先固证，再在平台、禁令、报警三条路里挑", "s8-37"],
+    [7, "「先给人买保险再动手」这条路法律上从头堵死：钱一分拿不到，罪按故意杀人加保险诈骗数罪并罚", "s8-38"], [7, "报警当场要受案回执，不立案要书面通知：7 日内可申请复议，再 7 日可申请复核，检察院能通知公安立案", "s8-39"], [7, "别给办案、执法的人送钱送卡：行贿自己也判，对监察、执法、司法人员行贿还要从重", "s8-40"],
+    [7, "可能翻脸的电话和面谈，直接开录音：自己参加的谈话，不用先征得对方同意", "s8-41"], [7, "现场出了事，先拍全景，再拍位置关系，最后拍损坏和伤情，原图原视频别删", "s8-42"], [7, "被家暴了：先报警留下出警记录，再去法院申请人身安全保护令，不用先离婚，也不收费", "s8-43"],
+    [7, "家里人赌博欠了债，别急着替他还：赌债法律不保护，为赌借的钱也不算夫妻共同债务", "s8-44"], [7, "熟人让你「帮忙刷个脸、做个见证」去办贷款，或者要你念验证码，别答应：这叫 AB 贷，借款人是你，不是担保人", "s8-45"], [7, "给门窗装好锁、门外装一盏感应灯，出门真的锁上：防入室盗窃靠这几样，单装一个报警器看不出用", "s8-46"],
+    [8, "群里不转发不知真假的灾情、疫情、警情消息，不 P 图、不用 AI 造现场图", "s9-1"], [8, "不发、不转侮辱英烈的图片、表情包和评论，不拿国旗国歌开玩笑", "s9-2"], [8, "境外网站上的东西看完就关，不截图、不转发、不搬进群里，也不在评论区跟着说", "s9-3"],
+    [8, "黄色视频自己看归自己，别往群里发、别卖「资源」、别建群", "s9-4"], [8, "「兼职」要你用自己的卡收钱、取现、转账，不管给多少好处费都不做", "s9-5"], [8, "有人拉你去「包装材料」贷款、按贷款额分你好处费，一个都不做", "s9-6"],
+    [8, "捡到银行卡不取钱，捡到手机、钱包联系失主或交给警察，不揣走", "s9-7"], [8, "优惠用自己的真实身份领，不买虚拟号批量注册小号，不靠漏洞重复领", "s9-8"], [8, "阳台、窗户不往外扔任何东西，烟头、垃圾袋、酒瓶都算", "s9-9"],
+    [8, "不网购仿真枪、钢珠枪、气枪，不买来路不明的「玩具枪」", "s9-10"], [8, "买了无人机先实名登记，机场、军事区和城市管制空域不飞，不破解限高", "s9-11"], [8, "不偷拍别人，不在出租屋、民宿、酒店房间装摄像头", "s9-12"],
+    [8, "麻将、扑克可以打，不抽头、不当庄、不组局收钱，不玩网络赌博", "s9-13"], [8, "不吃野味，不买卖、不养保护动物当宠物，野兰花、崖柏、红豆杉也别挖别买卖", "s9-14"], [8, "要债不扣人、不关人、不跟到家里赖着不让走", "s9-15"],
+    [8, "身份证不借人，不用别人的身份证，也不拿别人的证件登记、开卡、买票", "s9-16"], [8, "被警察拦下或带走时配合，不推、不打、不抢执法记录仪，喝了酒更要忍", "s9-17"], [8, "对方不满 14 岁就不能发生关系，「她同意」不是理由", "s9-18"],
+    [8, "动手打人前算清这笔账：拘留、赔钱、判刑", "s9-19"], [8, "孩子生下来养不了，只有民政登记这一条合法出路：收钱把孩子给人可能按拐卖罪判，扔下不管是遗弃罪", "s9-20"], [8, "别伪造事故、别夸大损失骗理赔：这是保险诈骗罪，帮你作证、帮你修车、帮你鉴定的人一起算", "s9-21"],
+    [8, "不卖自己的器官，也别帮人找供体：肾到手 2 万多，同一枚转手卖 20 万，钱要被没收还要按交易额罚 10 到 20 倍", "s9-22"], [8, "别嫖娼：默认档是拘留 10 到 15 日，不是罚点钱了事", "s9-23"], [8, "汉化漫画、搬运影视剧、分享网盘资源和盗版电子书，不收钱也是侵权；挂广告、收会员费就可能判刑", "s9-24"],
+    [8, "写同人、做二创拿去出版或卖钱，先取得原作许可，或者把借来的人物名字和关系换成自己的", "s9-25"], [8, "别为了防身买甩棍、电击器、匕首、辣椒水带在身上，放在车里也算携带", "s9-26"], [8, "捕鱼、钓鱼时，禁渔期和禁渔区不下网，任何时候都不电鱼、毒鱼、炸鱼，不用禁用渔具", "s9-27"],
+    [8, "上坟、烧荒、野炊时不在林区和草原点火，看到山火打 12119 或 119", "s9-28"], [8, "考公、考研、考驾照和考职业资格时，不替人考、不找人替考，不买卖答案，不帮人组织作弊", "s9-29"], [9, "认识更多人，而不是死磕一个：两个人合不合得来，见面之前预测不出来", "s10-1"],
+    [9, "对方明确拒绝之后就停下，继续纠缠是治安违法，不是「诚意」", "s10-2"], [9, "判断对方有没有兴趣，看行为不看「信号」：谁主动、谁安排、谁跟进", "s10-3"], [9, "关系好不好，主要看你自己在这段关系里的感受，不是看对方条件", "s10-4"],
+    [9, "想拉近距离就轮流回答一组由浅入深的问题，别学话术", "s10-5"], [9, "异地恋不比同城差，真正的坎是搬到一起之后的头三个月", "s10-6"], [9, "先看登记数据再听长辈：结婚率、离婚率各是什么口径", "s10-7"],
+    [9, "把结婚的健康收益算进去，但按观察性数据打折", "s10-8"], [9, "时间账按「无酬劳动」算，谈清分工再领证", "s10-9"], [9, "结婚的钱账先看法律默认规则，再决定要不要书面约定", "s10-10"],
+    [9, "父母出资买房，在转账的时候就把是借是送写清楚", "s10-11"], [9, "配偶一方大额借的钱，你没签字也没追认，不自动变成你的债", "s10-12"], [9, "领证只要身份证加一份签字声明，不用户口簿，不收钱，当场发证", "s10-13"],
+    [9, "婚前做一次婚检，有重大疾病必须在登记前如实告诉对方", "s10-14"], [9, "算退出成本：协议离婚有 30 天冷静期，诉讼离婚有法定条件", "s10-15"], [9, "给「为长辈结婚」单独记一笔账，别和自己的账混在一起", "s10-16"],
+    [9, "把关系好坏当成一笔健康账：吵架对事不对人，别骂人、别挖苦", "s10-17"], [9, "同性伴侣趁两个人都清醒，办好授权委托、意定监护和遗嘱：法律上你们不是近亲属，不办就没有签字权和继承权", "s10-18"], [9, "别靠隐瞒性取向结婚，也别把形婚当成省事的办法：法律上它就是一段真婚姻，想退出只能走离婚", "s10-19"],
+    [9, "关系卡在反复吵架和冷战里，两个人一起去做伴侣治疗：干等着基本不会自己好", "s10-20"], [9, "办了婚礼、摆了酒席，也要去领结婚证：没登记的在法律上不算夫妻，对方去世你没有配偶的继承权", "s10-21"], [9, "配偶背着你拿夫妻共同的钱大额打赏主播、转给婚外的人：不离婚也能请求分割共同财产，转给婚外的人的钱可以起诉要回", "s10-22"],
+    [9, "有未成年孩子的夫妻离婚时，把孩子跟谁、每月抚养费多少、探望的方式和时间都写进离婚协议：写得越具体，离婚后越少再打官司", "s10-23"], [10, "动手前先问一句：厂商、平台、公司会不会去报案；被追究后马上找刑事律师", "s11-1"], [10, "不做、不卖游戏外挂和辅助，包括「只读屏幕不碰内存」的 AI 辅助，也不卖给微信这类软件加功能的改版", "s11-2"],
+    [10, "不写、不卖抢票、秒杀、刷单、薅羊毛脚本，哪怕只是「自动化点按钮」", "s11-3"], [10, "爬虫只爬无需登录的公开页面，不绕反爬、不碰个人信息，爬到的数据不卖", "s11-4"], [10, "不接赌博、诈骗、色情 App 的开发单，不替「客户」搭支付通道、解封账号", "s11-5"],
+    [10, "离职时交清账号权限，不删库、不留后门、不改密码锁系统，哪怕公司欠你钱", "s11-6"], [10, "离职不带走源码、客户名单和技术文档，不上传个人网盘，不在下家复用", "s11-7"], [10, "不在别人的电脑、服务器、摄像头上跑自己的程序，公司机器不拿来挖矿", "s11-8"],
+    [10, "没有书面授权不测别人的系统，「出于好意」和「事后上报」在法条里都不是出罪理由", "s11-9"], [10, "漏洞按规定报送，修补前不公开细节、不发利用工具、不交给境外", "s11-10"], [10, "不卖翻墙工具、VPN 账号，不替人搭这类节点", "s11-11"],
+    [10, "签了竞业协议，离职后公司不按月给补偿就书面催告，满 3 个月没给可以解除；没接触过商业秘密的岗位可请求确认条款不生效", "s11-12"], [10, "上班时间、用公司资源写的代码归公司，自己的开源项目用自己的时间和设备做，不混公司代码", "s11-13"], [10, "用 GPL 等开源代码做产品，按许可证要求开源或换许可证，不当「没人管」", "s11-14"],
+    [10, "做 App 只收业务必需的个人信息，14 岁以下要监护人同意，隐私政策写清楚", "s11-15"], [10, "网站、App 上线前先做 ICP 备案，按等级保护要求留 6 个月以上日志", "s11-16"], [10, "对公众提供生成式 AI 服务前先按规定做安全评估和算法备案，生成内容加标识", "s11-17"],
+    [10, "不做、不发自动跳过或屏蔽别家 App 广告的工具，免费也可能被判不正当竞争", "s11-18"], [10, "不搭「AI 中转站」低价转卖境外大模型接口：上海已有站长被刑事拘留", "s11-19"], [10, "不写、不卖、不传软件的破解补丁、注册机和破解版，卖钱够了数就按侵犯著作权罪判", "s11-20"],
+    [10, "不帮人发起 DDoS 流量攻击，不卖、不租「压力测试」打流量平台，打游戏输了也别去打对方的服务器", "s11-21"], [11, "只拿亏得起的钱创业，不动家底、不借钱开张", "s12-1"], [11, "不给公司贷款签个人担保，配偶更不要跟着签", "s12-2"],
+    [11, "开张前选对主体：个体户和合伙人赔到底，有限公司才「有限」", "s12-3"], [11, "不当挂名股东，不替人代持股权", "s12-4"], [11, "加盟前先查商务部备案，拿到书面披露，把「冷静期」写进合同", "s12-5"],
+    [11, "注册前把名称、经营场所、经营范围和注册资本定下来，材料齐了当场就能领执照", "s12-6"], [11, "要许可证的行当，证没下来不开张", "s12-7"], [11, "做食品先看自己落在哪一档：生产和做餐饮要许可，只卖预包装的改备案，卖生鲜肉菜不用证", "s12-8"],
+    [11, "装袋卖就是预包装食品：标签上生产日期、保质期、配料表一样都不能少", "s12-9"], [11, "普通食品不许说能治病：标签、说明书、广告和直播话术都算", "s12-10"], [11, "食品这一行有刑事线：卖病死肉、超标货就够罪，掺了有毒有害的不看金额、起刑五年以下", "s12-11"],
+    [11, "领了执照就开始有申报义务，没有收入也要按期零申报（照报一张全是零的表）", "s12-12"], [11, "发票只按真实交易开，小规模纳税人用足免税额", "s12-13"], [11, "自称税务局、打电话或发消息催你往指定账号交钱报税的都是骗子，办税只走电子税务局和 12366", "s12-14"],
+    [11, "收钱写「定金」不写「订金」，违约金写明数，账期当放贷来审", "s12-15"], [11, "用人第一个月内签书面合同，30 日内办社保登记", "s12-16"], [11, "工资按合同和法律给，加薪、借款、奖金都走书面", "s12-17"],
+    [11, "先卖再造：用预售和小订单验证有人买，再投钱生产", "s12-18"], [11, "样品做出来先过一遍量产清单，再谈开工", "s12-19"], [11, "进货一批留一批票据和上家信息，进货价明显低于市场价的不进：员工替公司进的假货，算公司犯罪时老板也是被判的那个", "s12-20"],
+    [11, "商品、包装、吊牌和宣传图上的图案要么自己做要么买授权，改个颜色、加个图标不算「改过了」", "s12-21"], [11, "在岗位上按规程办事，规程之外的好意先想清楚责任归谁", "s12-22"], [11, "亏了就按程序退场：能简易注销就注销，资不抵债走破产，别放着不管", "s12-23"],
+    [11, "花钱请人代运营网店、上开店培训、做「无货源」之前，先问清后面还要不要加钱、销量从哪来", "s12-24"], [11, "开公司、当个体户的，每年 1 月 1 日到 6 月 30 日上网报上一年的年报，没生意也要报，年报不收费", "s12-25"], [11, "找人凑钱做生意，只找亲友和员工当面谈，不在朋友圈、群里公开招人投钱，也别让亲友替你再去拉人", "s12-26"],
+    [11, "租铺面开店，签约前先查这间房能不能开你的店：住宅改成店要同一栋楼的业主全都同意，住宅楼里不能新开有油烟的餐馆", "s12-27"], [11, "几个人合伙开店，开张前把出资、分钱、谁说了算、谁拿工资、怎么退出写成书面协议", "s12-28"], [12, "有人倒地没呼吸，立刻用力按压胸口，让旁人打 120 并找 AED", "s13-1"],
+    [12, "老人摔倒、有人倒地，先蹲下喊他、打 120，别急着把人扶起来；陌生人这档走开在国内也合法，停下来就别上手搬", "s13-2"], [12, "突然嘴歪、一侧胳膊没劲、说话说不清，立刻打 120，不要等、不要自己开车去", "s13-3"], [12, "突然天旋地转站不稳、看东西成双、一只眼发黑，或者手指点不到自己鼻尖，也按卒中打 120", "s13-4"],
+    [12, "一只眼睛突然像拉下窗帘一样黑掉，哪怕几分钟就自己好了，也当天按卒中去急诊", "s13-5"], [12, "一只眼又胀又痛、发红，看灯有一圈彩虹，还头痛恶心想吐，当天去眼科急诊", "s13-6"], [12, "胸口压着疼、闷、发紧超过 15 分钟不缓解，或者疼时出冷汗、恶心、喘不上气，打 120，不要自己扛也不要自己开车", "s13-7"],
+    [12, "突然像被撕开一样的剧痛，从胸口往后背、往腰一路挪，打 120 并说清「像撕开一样」", "s13-8"], [12, "突然一记「这辈子最疼的头痛」，一小时内就到最疼，立刻去急诊做头颅 CT", "s13-9"], [12, "老人磕过头之后两三周到几个月变得走路不稳、迟钝、嗜睡或者一侧没劲，去做头颅 CT", "s13-10"],
+    [12, "一条腿突然肿起来、发紧、按着疼，尽快就医；再加上突然喘不上气或者胸痛，立刻打 120", "s13-11"], [12, "大出血先用手死死压住伤口，四肢压不住就上止血带，同时打 120", "s13-12"], [12, "被狗、猫咬伤或抓破皮，先用肥皂水和流水交替冲 15 分钟，当天去打疫苗", "s13-13"],
+    [12, "烫伤后立刻用凉的流动水冲 20 分钟，别抹牙膏酱油", "s13-14"], [12, "突然全身起疹、喘不上气或者发晕，按过敏性休克处理，立刻叫 120 并说清楚", "s13-15"], [12, "有人抽搐倒地，清开周围、让他侧躺、看表计时，什么都别往嘴里塞；孩子发烧时抽搐也一样", "s13-16"],
+    [12, "糖尿病人突然发抖、出冷汗、说话不清，先给 15 克糖，15 分钟后复测", "s13-17"], [12, "有人触电，先断电，再用干燥的木棍之类挑开电源，不要直接上手拉", "s13-18"], [12, "一氧化碳报警器响了，或者一屋子人同时头痛恶心，先出门再打电话", "s13-19"],
+    [12, "误服清洁剂、农药、药物先别催吐，带上瓶子立刻就医；溅到眼睛或皮肤用大量清水至少冲 15 分钟", "s13-20"], [12, "酸碱等化学品溅到身上，立刻脱掉污染的衣服、用大量流动清水冲，眼睛要掰开眼皮冲，冲够时间再走", "s13-21"], [12, "高温下头晕、恶心、不出汗或意识不清，立刻挪到阴凉处脱衣泼水降温，意识不清的不喂水、打 120", "s13-22"],
+    [12, "中暑的人只要清醒，就少量多次喝凉的淡盐水或运动饮料，别猛灌、别喝酒和高糖饮料", "s13-23"], [12, "火灾时贴地爬、摸门再开门、门烫就别开，走楼梯不坐电梯，出去了别回头", "s13-24"], [12, "看到有人溺水，先叫人和打 110/120，伸竿、抛漂浮物，自己不下水", "s13-25"],
+    [12, "有人噎住说不出话，1 岁以上的站到背后做 5 次拍背加 5 次腹部冲击，倒下就做心肺复苏", "s13-26"], [12, "在戈壁、沙漠、无人区迷路或车坏了，留在原地或车旁，先报位置，再遮阳保温，省水，不乱走", "s13-27"], [12, "发抖、说话含糊、走路打晃是失温，换掉湿衣、包起来，先暖躯干，喝热甜饮不喝酒", "s13-28"],
+    [12, "被蛇咬，坐下别动、摘掉戒指手表、尽快送医院打抗蛇毒血清，不切、不吸、不绑死", "s13-29"], [12, "地震时先看自己在什么房子里：符合抗震设防的楼里就地躲，会垮的老房子门在几步外就出去", "s13-30"], [12, "遇到熊、野猪、成群野狗，别跑，侧身慢慢退开", "s13-31"],
+    [12, "野外遇上雷雨，钻进有硬顶的车或建筑，避开山脊、孤树、水面和金属", "s13-32"], [12, "上高原按睡眠海拔（当晚睡在多高）慢慢升，症状加重就下撤，不要硬扛", "s13-33"], [12, "被蜱虫叮住，用尖头镊子贴着皮肤稳稳拉出来，别涂油别用火烧", "s13-34"],
+    [12, "野外的水一律烧开再喝，滚开一分钟就够，常见的旅行海拔上不用因为海拔高多煮", "s13-35"], [12, "荒郊野外被陌生人索财，钱给他，不动手，记特征，脱身后报警", "s13-36"], [12, "撞见一群人打架，退开走人，别上去拉架、别围观、别捡地上的家伙；要报警就退到安全距离打 110", "s13-37"],
+    [12, "可能被 HIV 暴露了，72 小时内去拿阻断药，越早越好", "s13-38"], [12, "救人受了伤、搭进了钱，先找加害人和医保，再去申报见义勇为确认", "s13-39"], [12, "刀、钢筋、玻璃扎进身体，压住异物周围止血，不要把它拔出来", "s13-40"],
+    [12, "怀疑骨折就别再动那个部位，托着不动、冷敷 20 分钟以内，别自己掰正", "s13-41"], [12, "被性侵之后，先到安全的地方打 110；验伤之前别洗澡、别洗衣服、别收拾房间，72 小时内去医院", "s13-42"], [12, "不满 1 岁的婴儿噎住哭不出声，趴着拍背 5 下、翻过来按胸口 5 下，轮着做，别按肚子", "s13-43"],
+    [12, "不满 1 岁的婴儿没反应、没正常呼吸，开免提打 120，做婴儿心肺复苏：按 30 下吹 2 口气", "s13-44"], [12, "孩子吞了纽扣电池，或者吞了两颗以上的强磁珠，立刻去有胃镜的医院急诊，别等它自己拉出来、别催吐", "s13-45"], [12, "有人喝醉了，让他侧躺、有人一直守着，别让他一个人睡；叫不醒、呼吸慢或不规律、抽搐、身上发凉就打 120", "s13-46"],
+    [12, "手指、脚趾被切断，先压住伤口止血，断下来的部分用湿纱布包好装进密封袋，袋子放进冰水里，去有手外科的医院", "s13-47"], [12, "恒牙（换牙之后长出来的牙）整颗撞掉，捏住牙冠冲一下，能放回去就放回去，放不回就泡在牛奶里，马上去看牙；乳牙别放回去", "s13-48"], [13, "邮箱、支付、社交账号都开二次验证，优先用手机弹窗确认，其次才是短信验证码", "s14-1"],
+    [13, "邮箱密码单独一个，不和任何网站重复", "s14-2"], [13, "手机设锁屏密码，SIM 卡设 PIN 码", "s14-3"], [13, "手机丢了按这个顺序做：挂失 SIM 卡、远程锁定、改密码、报警、冻结银行卡", "s14-4"],
+    [13, "卡被盗刷先挂失冻结再报警，然后要求银行赔：证明「是你自己刷的」是银行的责任", "s14-5"], [13, "每隔一段时间看一次账号的登录设备和已授权应用，不用的清掉", "s14-6"], [13, "别为了用 App 点「全部同意」：不是必需的信息，你不同意也不能拒绝给你服务", "s14-7"],
+    [13, "你有权查看、复制、更正和删除自己的个人信息，被拒绝可以起诉", "s14-8"], [13, "刷脸不是必须答应的：有别的办法就不能只让你刷脸，你不同意得给你其他方式", "s14-9"], [13, "别把代码、密钥和隐私资料交给来路不明的「AI 中转站」，让 AI 自动执行命令时尤其如此", "s14-10"],
+    [13, "每年查一次自己名下有几张电话卡、几张银行卡，查出不是自己办的就去注销", "s14-11"], [13, "换手机号、不用旧号之前，先把银行、支付和社交账号改绑到新号上，别让旧号欠费停机了事", "s14-12"], [14, "租房时押金的数额、退还时间和扣减情形，必须写进合同", "s15-1"],
+    [14, "被断水断电、换锁、上门威胁赶人，先报警留证：法规禁止用这些方式逼你腾房", "s15-2"], [14, "中介不得代收代付租金和押金，钱直接给房东", "s15-3"], [14, "租长租公寓先查它的资金监管账户，别图便宜一次性付一年", "s15-4"],
+    [14, "房子租期内被卖掉，租约继续有效，不用搬", "s15-5"], [14, "租房签约前核对产权证和抵押情况，所有款项走转账并备注用途", "s15-6"], [14, "二手房让中介代收房款的，必须走中介在银行开的交易资金专用存款账户", "s15-7"],
+    [14, "别租隔断房：最小出租单位是原设计的房间，厨房、卫生间、阳台不得住人", "s15-8"], [14, "城镇户口想搬去乡下住，只租农房，别买宅基地和宅基地上的房子", "s15-9"], [14, "买期房时先看预售许可证，定金、首付和贷款只打进合同写明的预售资金监管账户", "s15-10"],
+    [14, "买新房交了认购定金或者首付，没签成正式合同、贷款批不下来（比如签约后政策收紧、银行停贷）又怪不到你的，要求开发商退钱", "s15-11"], [14, "买新房签合同前看清面积误差怎么处理，楼书、广告和沙盘上的承诺拍照留好", "s15-12"], [14, "买新房遇上开发商逾期交房、逾期办证，先发书面催告留证据，再按合同要违约金", "s15-13"],
+    [14, "买房签约前查清有没有查封和抵押，签约后去不动产登记机构办预告登记", "s15-14"], [14, "背着浮动利率房贷的，利率比新发放的房贷高出一截时，找银行协商降利率或者申请置换", "s15-15"], [14, "买首套房要贷款的，先用住房公积金贷款，额度不够再加商业贷款做组合贷，别直接全做商业贷款", "s15-16"],
+    [14, "住小区被物业停水、停电、停暖、停气逼交物业费的，向当地房地产主管部门投诉；自己欠了物业费，物业只能催告、起诉或者申请仲裁", "s15-17"], [14, "买新房收房时当场验房、把问题写进交房记录，漏水和水电管线出毛病，在《住宅质量保证书》的保修期内找开发商修", "s15-18"], [15, "药按医嘱吃满，别感觉好了就停", "s16-1"],
+    [15, "先办门诊慢特病认定再办异地备案，高血压、糖尿病、放化疗、透析、抗排异就能异地直接结算", "s16-2"], [15, "复查按医生给的间隔做，把每次的指标记在同一个本子上", "s16-3"], [15, "别为了试偏方、保健品停掉正规治疗", "s16-4"],
+    [15, "病情稳定的慢性病，在社区医院一次可以开到 12 周的药", "s16-5"], [15, "在社区签家庭医生之前，问清楚哪些进医保、哪些自费", "s16-6"], [15, "确诊糖尿病就去查一次眼底，之后按医生给的间隔查；每年查一次脚", "s16-7"],
+    [15, "得过肾结石就把水喝到每天 2.5–3 升，盐降到 6 克以内", "s16-8"], [15, "确诊痛风后长了痛风石、影像上看到骨头被啃出缺损或每年发作 2 次以上的，就长期吃降尿酸药，把血尿酸压到 360 µmol/L 以下并一直维持", "s16-9"], [15, "得过痛风的，吃烧烤、聚餐时别一顿吃下大量肉和海鲜，酒也要少喝", "s16-10"],
+    [15, "查出乙肝表面抗原阳性的，每半年做一次肝脏 B 超加甲胎蛋白，按医生评估决定吃不吃抗病毒药，吃上了别自己停", "s16-11"], [15, "确诊慢阻肺的，复诊时让医生或药师看你当面用一遍吸入剂；因为急性加重住过院的，出院后去做肺康复", "s16-12"], [15, "有糖尿病的每年查一次尿白蛋白肌酐比和血肌酐，有高血压的也要查，早点发现慢性肾病", "s16-13"],
+    [15, "结肠癌做完手术和化疗的，参加有人指导的运动方案，坚持练满三年", "s16-14"], [16, "趁老人清醒，书面指定将来的监护人", "s17-1"], [16, "把遗嘱立了，记住后立的推翻先立的，公证遗嘱不再优先", "s17-2"],
+    [16, "老人的钱单独放一个账户，大额支出定一个双人确认的规矩", "s17-3"], [16, "给老人备好一句随时能说出口的推辞：「我要回去和家里人商量」", "s17-4"], [16, "凡是让老人先交钱的「投资养老」都别碰：办卡、买床位、买养老公寓、旅居养老、买老年产品是同一套非法集资", "s17-5"],
+    [16, "除了保险公司的住房反向抵押养老保险，其他「以房养老」都别碰，绝不抵押房子去买理财", "s17-6"], [16, "家里老人长期卧床或重度失能，去参保地医保部门申请长期护理保险；它不是只发给老人", "s17-7"], [16, "家里有人长期卧床，把压疮当头号敌人：上电动气垫床、定时翻身、每天看一遍骨头突出的地方", "s17-8"],
+    [16, "老人的白内障已经影响看路，就去眼科评估做手术；两只眼都有的，第二只别拖太久", "s17-9"], [16, "家里老人遛狗，把牵绳握在手心、别缠在手上，绳子收短，狗先训练到牵着不往前猛冲", "s17-10"], [16, "送老人住养老院，先查它在民政部门备没备案、签书面协议；押金最多 12 个月床位费，要打进银行专用账户", "s17-11"],
+    [16, "独生子女的父母住院，查本省条例有没有给子女的护理假，有就带着住院证明向单位书面申请", "s17-12"], [16, "老人记性越来越差、开始耽误过日子，带去医院的记忆门诊或者神经内科查一次，先排除抑郁、吃的药、听不清看不清这类能改的原因", "s17-13"], [17, "先把能领的算进来：国家育儿补贴每孩每年 3600 元，发到 3 岁；个税专项附加扣除每孩每月 2000 元", "s18-1"],
+    [17, "产假 98 天，生育津贴由生育保险基金按单位上年度职工月平均工资发；男方的陪产假和夫妻俩的育儿假按本省条例休", "s18-2"], [17, "知道这条：不得因怀孕、生育、哺乳降工资或者辞退", "s18-3"], [17, "养孩子的时间账按「谁的时间被占掉」算，不按「辛不辛苦」算", "s18-4"],
+    [17, "钱账分三段算：0 到 3 岁、义务教育、义务教育之后", "s18-5"], [17, "为长辈生、为婚姻生、为养老生，各记一笔账", "s18-6"], [17, "打算晚几年再生孩子的，先把女方的年龄这笔账算上：40 岁前后自然怀上的几率、试管婴儿的成功率都明显往下走", "s18-7"],
+    [18, "加班费按 1.5 倍、2 倍、3 倍三档算，不给就投诉劳动监察，逾期不付还要加付 50% 到 100%", "s19-1"], [18, "年休假按累计工龄算 5、10、15 天，没休成的按日工资 300% 折钱", "s19-2"], [18, "试用期有法定上限、工资不得低于 80%，而且只能约定一次", "s19-3"],
+    [18, "被裁先算清 N：每满一年一个月工资，不满六个月按半个月", "s19-4"], [18, "公司以病后干不了、不胜任或情况大变为由辞退你，没提前 30 天通知的，还要多付一个月工资", "s19-5"], [18, "公司违法解除的，赔偿金是经济补偿标准的二倍", "s19-6"],
+    [18, "不要签「个人原因主动辞职」，那一签就没有 N 了", "s19-7"], [18, "离职前把工资条、考勤、劳动合同、社保记录和聊天记录先存下来", "s19-8"], [18, "进有粉尘、噪声、化学品的岗位之前，先看合同里写没写危害；三次职业健康检查由单位安排并掏钱", "s19-9"],
+    [18, "粉尘、噪声、化学毒物造成的损伤不少是不可逆的（比如尘肺、噪声聋）：防护用品单位必须给，没有防护措施的作业可以拒绝", "s19-10"], [18, "上班受伤、上下班路上被撞，第一件事是做工伤认定，单位不报你自己报", "s19-11"], [18, "别信「撑到工位就算工伤」：突发不适先打 120，不是先赶去打卡", "s19-12"],
+    [18, "单位没给你交工伤保险，工伤待遇一样有，由单位按同样的标准全额出", "s19-13"], [18, "伤情稳定后去做劳动能力鉴定，伤残等级直接换算成钱", "s19-14"], [18, "工亡的三笔钱要分清：丧葬补助金、供养亲属抚恤金、一次性工亡补助金", "s19-15"],
+    [18, "在单位长期被欺负、辱骂、刁难，别硬扛：先记下来留证据，再按性质走投诉、报警或者仲裁", "s19-16"], [18, "离职时找单位要一份离职证明，写明合同期限、离职日期、岗位和工作年限", "s19-17"], [18, "拿到离职补偿先看个税：当地上年职工平均工资 3 倍以内免税，超出的部分单独算，不并进当年工资", "s19-18"],
+    [18, "换城市工作时，把养老和医保关系转到新参保地，缴费年限接着累计，别办退保", "s19-19"], [18, "入职满一个月单位还没和你签书面劳动合同，从第二个月起可以要双倍工资，最多 11 个月；满一年还不签，就算签了无固定期限合同", "s19-20"], [18, "单位不交或少交社保，先投诉让它补缴；想因此辞职拿经济补偿，辞职通知里要写明是因为单位没依法缴社保", "s19-21"],
+    [18, "离职时公司要你赔违约金，先看是哪一种：只有专项培训的服务期和竞业限制能约定违约金，别的名目法律不许约定", "s19-22"], [18, "单位要给你调岗、降薪，你不同意就当场书面提出来，别默不作声按新安排干上一个多月", "s19-23"], [18, "被劳务派遣到别家公司干活的，工资要和同类岗位的正式工按同一套办法算，在干活的单位受了损害两家公司一起赔", "s19-24"],
+    [19, "让婴儿期的孩子仰着睡，睡硬的平面，同房不同床，床上不放任何软东西", "s20-1"], [19, "出生后 24 小时内打上乙肝疫苗第一针", "s20-2"], [19, "按国家免疫规划把该打的疫苗打齐，全程免费，错过了只补没打完的剂次", "s20-3"],
+    [19, "前 6 个月只喂母乳，连水都不用喂，6 个月起加辅食并继续母乳", "s20-4"], [19, "冲奶粉用 70 ℃ 以上的水，冲好放凉再喂，喝剩的倒掉", "s20-5"], [19, "不满 1 岁不喂蜂蜜", "s20-6"],
+    [19, "出生时的维生素 K 针一定要打", "s20-7"], [19, "不满 3 个月的婴儿体温到 38 ℃ 就直接去医院，不在家观察", "s20-8"], [19, "无论多累多气都不要摇晃婴儿", "s20-9"],
+    [19, "尿布不看牌子看三件事：合不合身、换得勤不勤、有没有被抽检通报过", "s20-10"], [19, "大件按「借、买二手、买新」的顺序考虑，别一次性配齐", "s20-11"], [19, "孩子有严重湿疹或鸡蛋过敏，别躲着花生，按医生指导早点加上，但绝不能喂整粒", "s20-12"],
+    [19, "盯住新生儿黄疸的几个信号：出生 24 小时内就黄、叫不醒不吃奶，就当天去医院；越来越黄、大便发白，就尽快去查", "s20-13"], [19, "怀孕、喂奶时在吃素，就补维生素 B12 或吃强化食品；孩子的辅食要有动物性食物，非要全素先找医生", "s20-14"], [19, "给婴儿添置东西时别买带轮子的学步车，想让他坐着玩就换成没轮子的游戏站台或游戏围栏", "s20-15"],
+    [19, "孩子出生后就每天喂 400 国际单位维生素 D，吃母乳的尤其别漏，足月的 6 个月内一般不用另补钙", "s20-16"], [19, "给婴儿洗澡先放冷水再兑热水，用手腕内侧或手肘试过再放孩子；能设出水温度的热水器调到 50 ℃ 以下", "s20-17"], [20, "出发前查一次外交部安全提醒，标了「暂勿前往」的地方就别去", "s21-1"],
+    [20, "把 12308 和当地使领馆的领保电话存进手机，再抄一份放钱包，别等出事再找", "s21-2"], [20, "知道领事保护能做什么、不能做什么：能探视，不能捞人，费用还得自己付", "s21-3"], [20, "买一份含境外医疗和医疗转运的保险，别只买航班延误险", "s21-4"],
+    [20, "「境外高薪招聘」一律当诈骗看，被骗去做电诈回来还可能要被限制出境", "s21-5"], [20, "境外取现一年不能超过 10 万元人民币，是本人名下所有卡合起来算的；随身带现金出入境，人民币每次最多 2 万元，外币超过 5000 美元要向海关申报", "s21-6"], [20, "护照、签证、身份证都拍照存一份在云端，丢了先报警再补旅行证", "s21-7"],
+    [20, "境外自驾先确认当地认不认中国驾照，网上卖的「国际驾照」多数是废纸", "s21-8"], [20, "找中介办签证、留学、移民，先问它有没有在移民管理机构备案", "s21-9"], [20, "别替陌生人出具邀请函，也别让人借你的名义办出入境手续", "s21-10"],
+    [20, "出境前把行程、住处和同行人发给一位家人，约好多久联系一次", "s21-11"], [20, "出国带药先查目的地规定：含伪麻黄碱、可待因的感冒药和止咳药，安眠药、精神类药和强效止痛药，带原包装、处方或医生证明，只带自用量", "s21-12"], [20, "从国外回国入境时别带肉制品（真空包装的火腿、肉干也算）、奶酪、新鲜水果和种子，带了动植物产品就走红色通道申报", "s21-13"],
+    [21, "进 KTV、酒吧、密室之前先看一眼安全出口在哪，被锁被堵就换一家", "s22-1"], [21, "点单前要价目表，娱乐场所必须明码标价，不接受「先玩后算」", "s22-2"], [21, "场子里有人递「东西」就立刻走，容留和提供都不是「帮朋友」", "s22-3"],
+    [21, "不吃陌生人给的糖和零食，不喝离开过视线的饮料，不接别人递的烟弹", "s22-4"], [21, "剧本杀、密室别去开在居民楼里或者地下二层以下的", "s22-5"], [21, "心情差到抑郁的程度，就去走或者跑，抗抑郁的效应量（效果大小）跟强度成正比", "s22-6"],
+    [21, "焦虑到影响生活时，正念减压课的效果不劣于常用的抗焦虑药", "s22-7"], [21, "当场想缓过来，用 5 分钟「循环叹息」：吸气两段，呼气拉长", "s22-8"], [21, "把「定期和人见面」当成健康支出，别只在心情差时才找人", "s22-9"],
+    [21, "选住处时把周边绿地算进去，但别指望「多去公园」就延寿", "s22-10"], [21, "喝了酒别泡温泉、蒸桑拿，回家也别泡热水澡", "s22-11"], [21, "滑雪、滑单板、轮滑、骑山地车时戴头盔", "s22-12"],
+    [22, "不满 16 周岁没有「去打工」这个选项：招你的单位每月被罚 5000 元，肯招的都是黑工", "s23-1"], [22, "把「读书有没有用」也放进死亡率账里：每多受一年教育，成人死亡风险降约 1.9%", "s23-2"], [22, "判断「学历是不是贬值了」之前，先看全国的学历结构：每 10 万人里只有 15467 人有大学文化程度（2020 年普查，2025 年抽样推算约 19%）", "s23-3"],
+    [22, "「读不起」先按政策算一遍：公办中职学费对农村和困难学生大多已免，助学金 2300 元，助学贷款每年最高 2 万", "s23-4"], [22, "没考上普高不等于路断了：中职有贯通招生和单独考试，事业单位技能岗位招聘还可以降学历要求", "s23-5"], [22, "把「读书还是打工」算成一道题：先去打工早挣的三年工资，对上接着读书换来的、往后几十年的年收入差", "s23-6"],
+    [22, "先记住基准线：多受一年教育，全球平均的私人回报（落到自己收入上的那部分）约为每年 9%", "s23-7"], [22, "花钱考证之前，先查这张证在不在国家职业资格目录或人社部备案的评价机构名单里", "s23-8"], [22, "培训优先走政府补贴渠道，别一上来就自费报商业班", "s23-9"],
+    [22, "挑技能时优先看「要不要动手、要不要现场判断」，这类最难被自动化顶掉", "s23-10"], [22, "学之前先确认这个技能有没有等级评价，等级能不能换成钱", "s23-11"], [22, "别把「网上说工资高」当成缺人，去查当地的紧缺职业目录和补贴目录", "s23-12"],
+    [22, "同样的钱和时间，优先选能直接上岗的短周期项目", "s23-13"], [22, "学完先合上书自己考一遍，别回头重读", "s23-14"], [22, "把同样的时间摊到几天，别一次学完", "s23-15"],
+    [22, "别把划重点、反复读、写摘要当成主要学法", "s23-16"], [22, "几种题型混着练，别一种连做二十道", "s23-17"], [22, "别按「我是视觉型、他是听觉型」挑学法", "s23-18"],
+    [22, "要背的内容按将来的用法出题考自己，别原样背一遍就算完", "s23-19"], [22, "评职称先弄清自己在哪个系列、哪一级，再按单位性质找申报渠道", "s23-20"], [22, "会计这类初级、中级职称靠全国统考拿，先对照学历和工作年限去报名", "s23-21"],
+    [22, "别找中介代评、别买论文代写、别在材料上造假：查实就撤销职称，记诚信档案 3 年", "s23-22"], [22, "拿到职称不等于涨工资：先问清单位是按岗位比例评聘，还是评了不一定聘", "s23-23"], [22, "本科毕业要不要接着读硕士：先算学费和少挣的两三年工资，再看自己读的专业多挣不多挣；已经上班的可以读非全日制，证书和全日制效力相同", "s23-24"],
+    [22, "硕士毕业要不要接着读博士：目标岗位明确要博士才读，读之前把心理负担也算进去", "s23-25"], [23, "常见病先在社区看，经基层逐级转诊上去，住院起付线接着算", "s24-1"], [23, "同一个统筹地区（医保参保地）里，级别越低报销比例越高，差距约 10 个百分点", "s24-2"],
+    [23, "要去大医院，走基层转诊或者医院的转诊中心，别找号贩子", "s24-3"], [23, "跨省异地就医之前先在本地问一句，必要性原则上要副主任医师以上评估", "s24-4"], [23, "每次看完病，把病历、检查报告和影像自己存一份", "s24-5"],
+    [23, "对诊疗有疑问就当场要求封存病历，双方在场、开清单、各执一份", "s24-6"], [23, "急重的伤病直奔急诊预检分诊台，别去挂号窗口排队", "s24-7"], [23, "没带钱、没带证件、说不清自己是谁，急诊也必须先救", "s24-8"],
+    [23, "伤残鉴定要等治疗终结或者临床治疗效果稳定之后再做", "s24-9"], [23, "治完之后确实留下功能障碍，去户籍地县级残联申请残疾人证", "s24-10"], [23, "谢救过你的医生，走感谢信、锦旗和满意度评价，别走红包：准则禁的是财物，不是谢意", "s24-11"],
+    [23, "种牙之前先问清包干价含哪些项目，优先找承诺参与价格治理的机构，别信低价广告", "s24-12"], [23, "医院说国家医保谈判药没货、不进院的，让医生开处方，去医保「双通道」定点药店买，照样按规定报销", "s24-13"], [23, "在医院确诊过、病情稳定的慢性病要续方，可以在这家医院的互联网医院线上复诊开药，第一次看这个病不能在网上看", "s24-14"],
+    [23, "住院时要来费用清单逐项对，医保不报的自费项目先问清再同意，对不上先找医院价格投诉，再不行向医保部门举报", "s24-15"], [24, "人在家里或外面没了，先分清正常死亡还是非正常死亡：意外、死因不明、独居才发现的，立刻报警，遗体和现场不要动", "s25-1"], [24, "死亡证明是后面所有事的钥匙：谁救治谁开，家中正常死亡找社区卫生服务机构，一日内签发", "s25-2"],
+    [24, "遗体接运、存放、火化只能走殡仪馆，医院太平间不办殡仪，存放一般不超过 3 日", "s25-3"], [24, "对死因有异议，48 小时内提出并进行尸检，同时封存病历", "s25-4"], [24, "给去世的人注销户口有法定时限：城市在安葬前，农村在一个月以内", "s25-5"],
+    [24, "殡葬服务分基础项目和非基础项目，基础项目有清单、收费依法制定", "s25-6"], [24, "遇到强制搭售、标价外加价、把一项拆成几项收费，记下来投诉", "s25-7"], [24, "殡葬代理、用品代购、策划主持这类中介，要在县级民政备案", "s25-8"],
+    [24, "分散在各处的钱要逐个去取：公积金余额、社保待遇、工伤待遇", "s25-9"], [24, "死者的账号和个人信息，近亲属可以要求查阅、复制、更正、删除", "s25-10"], [24, "亲人去世留下欠债，继承人只用继承到的遗产去还；不想担就在分遗产前书面声明放弃继承", "s25-11"],
+    [24, "家里人去世后办继承，别默认先去公证：一家银行 5 万元以内的存款直接去银行取，房子由全部继承人一起去不动产登记机构办", "s25-12"], [25, "平台不要自己收钱再转给卖家，让钱走持牌支付机构直接结算", "s26-1"], [25, "收费的网站多数要许可证，自己卖货不让别人入驻的不用，撮合交易的是另一类许可，免费的只要备案", "s26-2"],
+    [25, "做直播要网络文化经营许可证，做视听节目的那张证民营基本拿不到", "s26-3"], [25, "服务器放境内就要备案，App 和小程序上架前也要备案，接入商必须自己持有增值电信许可", "s26-4"], [25, "让用户上来卖东西，平台就要核验登记、报送信息、留存三年", "s26-5"],
+    [25, "用户发的内容你要管：审核机制、举报入口、发现违法立即停传并报告", "s26-6"], [25, "提供信息发布、即时通讯服务，必须要求用户提供真实身份信息", "s26-7"], [25, "不给未满 16 周岁的人开直播，打赏按年龄分档处理", "s26-8"],
+    [25, "接到侵权通知要及时处理，转送声明后 15 日没有下文就恢复", "s26-9"], [25, "用户信息不要随手放到境外，出境有法定条件和人数门槛", "s26-10"], [25, "选服务器先看停机能不能忍，再看有没有人运维，最后才比价", "s26-11"],
+    [25, "网站或 App 里的用户信息泄露了，马上补救，通知用户和主管部门，被人攻击的去公安报案", "s26-12"], [25, "卖自动续费会员的，开通前和每次扣钱前都要显著提醒用户，取消入口要好找", "s26-13"], [26, "准备怀孕就开始每天补 0.4 毫克叶酸，一直吃到孕早期满 3 个月", "s27-1"],
+    [26, "孕 13 周前去社区卫生服务中心建《母子健康手册》，把免费产检额度用掉", "s27-2"], [26, "第一次产检就把艾滋病、梅毒、乙肝三项查掉，查出来艾滋病也有免费的阻断", "s27-3"], [26, "整个孕期一支烟一口酒都不要，家里人也别在屋里抽", "s27-4"],
+    [26, "有子痫前期高危因素的，孕 12 周后开始每天一片小剂量阿司匹林", "s27-5"], [26, "孕 24 周及以后做一次妊娠期糖尿病筛查，别嫌喝糖水麻烦", "s27-6"], [26, "背下这张「立刻去医院」的清单，孕期和产后一年内都算数", "s27-7"],
+    [26, "破水了就地平躺、垫高臀部、打 120，不要走动也不要洗澡", "s27-8"], [26, "想要无痛分娩就直接说，它不增加剖宫产的风险", "s27-9"], [26, "没有医学指征就别主动要求剖宫产，也别为了挑日子开刀", "s27-10"],
+    [26, "怀孕前就确认生育保险的参保状态，未就业的配偶也能报生育医疗费用", "s27-11"], [26, "出院前把《出生医学证明》办掉，名字提前想好、别写错字", "s27-12"], [26, "新生儿足跟血筛查和听力筛查都别拒绝", "s27-13"],
+    [26, "拿到出生医学证明就给孩子办居民医保，别等落完户", "s27-14"], [26, "孩子出生后一个月以内去派出所申报出生登记", "s27-15"], [26, "产后 42 天那次复查别跳过，它在一些地方同时是产后抑郁的筛查", "s27-16"],
+    [26, "怀孕了不用把猫送走，猫砂换别人每天铲，肉要做熟、碰土戴手套", "s27-17"], [26, "怀孕期间赶上流感季就打一针流感灭活疫苗，孕期哪个阶段都能打，别用鼻喷的", "s27-18"], [26, "怀孕 28 周以后入睡时侧着躺，左侧右侧都行，别仰面躺着睡", "s27-19"],
+    [26, "生完孩子恢复同房就要避孕，喂奶不等于避孕；想要下一胎，至少隔 18 个月再怀", "s27-20"], [27, "不要用极端节食、断食或催吐来控制体重，要减就从运动那一侧减", "s28-1"], [27, "打针、埋线、开刀之前查两样：机构许可证上有没有「医疗美容」，动手的人是不是主诊医师", "s28-2"],
+    [27, "面部填充避开鼻背、眉间、额头这几个部位，更别为省钱找非正规注射", "s28-3"], [27, "不要买承诺「快速瘦」的减肥药、减肥咖啡、瘦身糖果和酵素梅（号称泡过酵素的梅子）", "s28-4"], [27, "不要用合成代谢类固醇（「增肌针」「口服药」）来长肌肉", "s28-5"],
+    [27, "要吃减肥药、打司美格鲁肽这类减重针，就去医院拿处方、按医生安排加量和复查，别在不用处方就发货的网店买，也别去美容院打", "s28-6"], [27, "性激素类药只在医生开方并定期复查的前提下用，不要网购、不要自己加量", "s28-7"], [27, "如果「觉得自己丑」已经到反复照镜子、反复想改的程度，先做一次体像评估再谈手术", "s28-8"],
+    [27, "矫正牙齿要找有正畸资质的医生当面检查、按时复诊，别网购牙套自己在家戴", "s28-9"], [27, "买祛斑美白霜先拿包装上的「国妆特字」编号去国家药监局网站核对，别用微商卖的、美容院自己配的祛斑霜", "s28-10"], [28, "亲人刚走的那几天别一个人待着，有心脏病、高血压、糖尿病的照常吃药，胸口压着疼就叫 120", "s29-1"],
+    [28, "被告知重病诊断的那一周，别一个人去拿报告，治疗以外的决定往后放", "s29-2"], [28, "失业之后先把作息、医保和找工作的节奏固定下来，别整天待在家里", "s29-3"], [28, "亲人死于自杀、意外或凶案的，别指望硬扛，主动去找专业帮助", "s29-4"],
+    [28, "丧偶后的头半年，把三餐、睡觉、慢性病的药和复查交给一个固定的人盯着", "s29-5"], [28, "没有亲人也没有朋友的，把「盯着你的那个人」换成三样东西：能进你家门的邻居、社区的探访名单、手机里的紧急联络", "s29-6"], [28, "家长去世后，如实告诉孩子、让他参加告别", "s29-7"],
+    [28, "哀伤过了半年还在原地、日子过不下去，去精神科或临床心理科挂号", "s29-8"], [28, "别一上来就花钱做哀伤咨询，先看自己的哀伤是不是真的卡住了（第 8 条那几条症状）", "s29-9"], [28, "分居离婚之后别断医保、别用酒顶着", "s29-10"],
+    [28, "要人陪着说话打 12356，未成年人和青少年打 12355，要看医生挂心理门诊", "s29-11"], [28, "变故后的头三个月，凡是不可逆的大决定一律往后推", "s29-12"], [28, "别拿死当还债的办法：两年内的寿险不赔，工伤不认，债照样先从遗产里扣", "s29-13"],
+    [28, "自己经历车祸、被打、灾难之后，别指望出事后马上做的一次性心理晤谈；过了一个月噩梦、闪回、提心吊胆还很重的，去精神科做创伤聚焦的心理治疗", "s29-14"], [29, "孩子说突然剧痛、而且越来越重，立刻去医院，不要让他忍到放学", "s30-1"], [29, "该做的治疗别为了「等考完」往后拖，有些窗口跟着骨龄走，不跟着考试安排走", "s30-2"],
+    [29, "孩子被欺凌，当天就报到学校并要求书面处理，涉及打人、抢钱、传谣的直接报警", "s30-3"], [29, "让孩子每天在户外待够 2 小时，这是目前不花钱、不用药的办法里，唯一有随机试验支持的防近视办法", "s30-4"], [29, "0 到 3 岁不给屏幕，3 到 6 岁尽量不给，中小学生非学习用途每天不超过 1 小时", "s30-5"],
+    [29, "把近视当成会留下的损伤：度数越深，将来视网膜脱离、黄斑病变、青光眼越多", "s30-6"], [29, "每年那次学生体检的报告单要自己看一遍，异常项当年带去医院查", "s30-7"], [29, "12 到 18 岁的孩子做一次抑郁筛查，别拿学校的心理测评当诊断", "s30-8"],
+    [29, "不买号称能「治愈近视」「降低度数」的产品和服务", "s30-9"], [29, "睡眠、作业、体育和排名都有明文规定，学校做不到可以提", "s30-10"], [29, "孩子撑不住了可以休学，学籍学校必须给他留着，最长 1 年", "s30-11"],
+    [29, "查出视力不良，去医院做散瞳验光，之后按医生给的间隔复查", "s30-12"], [29, "恒磨牙长出来以后做窝沟封闭", "s30-13"], [29, "孩子爱打游戏，先看睡觉、作业和出门活动有没有被挤掉，别光盯着玩了多久", "s30-14"],
+    [29, "孩子说自己喜欢同性，别骂、别赶出家门、别送去「矫正」：家里的态度和他会不会自杀有关", "s30-15"], [29, "管孩子别动手打，也别吼骂、骂他笨：常挨打挨骂的孩子，行为和情绪问题都更多", "s30-16"], [29, "孩子难管、自己总忍不住打骂，去上一期教具体做法的家长课", "s30-17"],
+    [29, "别把孩子送进封闭管理的「戒网瘾学校」「特训营」：法律禁止用伤害身心的办法戒网瘾，已经有孩子被关死", "s30-18"], [29, "教孩子认识身体的隐私部位，被人碰了、被要求保密都要回家说；孩子说了先信、别骂，带去报警和就医", "s30-19"], [29, "别让不满 12 周岁的孩子骑自行车上路、不满 16 周岁的骑电动自行车上路：撞了人父母赔，自己被撞也可能要担一部分", "s30-20"],
+    [29, "孩子运动时撞了头、之后头痛头晕或者发懵，当天别再上场；吐了又吐、越来越困、头痛越来越重，立刻去急诊", "s30-21"], [30, "先把门槛对一遍：十二条路的年龄和学历要求大多都是明文写死的", "s31-1"], [30, "十八岁那年 10 月 31 日前要做兵役登记；义务兵服现役就是两年", "s31-2"],
+    [30, "应征之后拒服兵役，两年内不准出境或升学复学，还进不了公务员和国企", "s31-3"], [30, "大学生当兵最实的两块：学费每年补最高 20000 元，学籍保留到退役后两年、考研有专项计划", "s31-4"], [30, "退役后只有六种情况由政府安排工作；自主就业的 30 日内必须报到", "s31-5"],
+    [30, "退役后的三笔账：一次性退役金、军龄算工龄、自己干每年扣减 20000 元税", "s31-6"], [30, "想进体制内不止考公一条：基层服务项目干满两年，能报每年 10% 的定向考录计划", "s31-7"], [30, "特岗教师三年服务期满、考核合格又愿意留下的，应当及时入编", "s31-8"],
+    [30, "消防员和军队文职是另外两个公开招录的口子，门槛比考公低", "s31-9"], [30, "学历不是一锤子买卖：自考不限年龄和已受教育程度，成人高考和开放大学都能补，学历只认学信网查得到的，「免考包过」的学历提升班别报", "s31-10"], [30, "不进单位就是灵活就业：养老和医疗要自己在就业地参保，户籍限制已经放开", "s31-11"],
+    [30, "送外卖、跑网约车、拉同城货运，平台按单给你交职业伤害保障费，自己不缴", "s31-12"], [30, "高考填志愿那天就能基本锁定编制的两条路：公费师范生和定向医学生，代价是 6 年履约", "s31-13"], [30, "想出国打工，先查这家公司有没有对外劳务合作经营资格：它不得向你收押金", "s31-14"],
+    [30, "在家给境外公司远程干活，这笔钱在税法上算境内所得：个税自己报，收汇走「职工报酬」", "s31-15"], [30, "不进单位自己干，起步钱先看创业担保贷款：个人最高 30 万、财政贴一半利息", "s31-16"], [30, "毕业两年内还想考公务员的，签工作、转档案之前先查招考公告怎么认「应届生」：国考要档案和户口留在学校或人才服务机构", "s31-17"],
+    [31, "交学费之前先查学校在不在留服中心的认证院校名单里", "s32-1"], [31, "盯住美国 F-1 新规的官司：「最长四年、读完 30 天内走」原定 2026 年 9 月 15 日生效，前一天被法院暂停，眼下仍是「读完为止」", "s32-2"], [31, "打工时数是美加英澳四国都写死的红线，超一小时就是违反签证条件", "s32-3"],
+    [31, "身份的根是「全日制在读」：休学、退学、转学空档期一律不能打工", "s32-4"], [31, "美国：搬家后 10 天内必须报新地址", "s32-5"], [31, "出发前和在读期间，看一眼教育部的留学预警", "s32-6"],
+    [31, "澳大利亚：OSHC 必须覆盖全程且中间不能断，落地拿不出保险可能被拒绝入境", "s32-7"], [31, "英国：签证费之外还有一笔按年收的医疗附加费，学生每年 776 英镑，申请时一次付清", "s32-8"], [31, "回国前留出认证时间：留服认证要 10 到 20 个工作日", "s32-9"],
+    [31, "报名前在留服中心的公告里搜一次学校名，被「加强审查」的学校认证至少要等 60 个工作日", "s32-10"], [31, "美国：毕业后做 OPT 的，把没工作的天数记下来，累计不能超过 90 天，拿到 STEM 延期的合计不能超过 150 天", "s32-11"], [31, "加拿大：申请学签之前，先通过学校拿到省级证明信（PAL/TAL），公立大学读硕士、博士的从 2026 年起不用", "s32-12"],
+    [32, "脊髓损伤之后突然剧烈头痛、出汗，先扶坐直、松开衣物，同时叫 120", "s33-1"], [32, "脊髓损伤致残之后的头十年是自杀的高风险期，别当成「想开点」就行的事", "s33-2"], [32, "精神障碍住院以自愿为原则，只有两种情形可以不经本人同意", "s33-3"],
+    [32, "长期照护家里残疾人的那个人，自己的身体要有人盯着", "s33-4"], [32, "长期坐轮椅的，坐垫换成减压型，每天看一遍坐骨和尾骨", "s33-5"], [32, "别买「能治好瘫痪、失明、耳聋」的疗法和器械", "s33-6"],
+    [32, "残疾人证办下来之后，去县级残联把能申请的东西一次问全", "s33-7"], [32, "孩子不满 7 岁又有残疾或者孤独症的，去县级残联申请康复救助", "s33-8"], [32, "家里的坡道、扶手和浴室改造，可以向县级以上政府申请补贴", "s33-9"],
+    [32, "找工作时主动说明自己持残疾人证，企业招你能抵掉一笔钱", "s33-10"], [32, "残疾人的个人所得税可以减征，减多少打电话问省税务局", "s33-11"], [32, "导盲犬可以带进公共场所和公共交通，盲人免费坐市内公交", "s33-12"],
+    [32, "残疾人参加高考可以申请合理便利，用盲文卷的考试时间加一半", "s33-13"], [32, "残疾孩子申请入学，学校不得拒收；到不了校的由教育局安排送教上门", "s33-14"], [32, "右下肢或者双下肢没了也能考驾照，准驾车型叫 C5", "s33-15"],
+    [32, "康复在有康复医学科的正规机构做，强度听治疗师的，不是越猛越好（证据来自中风）", "s33-16"], [32, "听力下降就去配助听器，配它的理由是听得见，不是防痴呆", "s33-17"], [32, "说一个成年人「管不了自己的事」，要向法院申请认定，家属说了不算", "s33-18"],
+    [32, "成年人的监护人按法定顺序定；被监护人伤了别人，由监护人赔", "s33-19"], [32, "因为残疾被拒招、不转正、少发钱，可以告，但先把过程成本算清", "s33-20"], [32, "脊髓损伤后尿不出来的，排尿方式和医生一起定，别长期插着尿管不管，终身定期查肾和膀胱", "s33-21"],
+    [33, "同时吃两种感冒药或止痛药之前，先看成分表，对乙酰氨基酚只能占一种，吃多了没不舒服也当天去医院", "s34-1"], [33, "孩子发烧不用阿司匹林、尼美舒利和安乃近，含安乃近的感冒药也不给未成年人吃，液体退烧药用药盒里配的量具量", "s34-2"], [33, "60 岁以上、胃出过血、在吃抗凝药或激素的人，吃布洛芬这类止痛药之前先问医生", "s34-3"],
+    [33, "2 岁以下的孩子感冒，别自己喂复方感冒药和止咳药", "s34-4"], [33, "怀孕 20 周以后，别自己吃布洛芬这类止痛药", "s34-5"], [33, "反酸烧心自己买奥美拉唑，最多吃 7 天；吞咽困难、呕血、黑便就直接去医院", "s34-6"],
+    [33, "普通感冒别找医生要抗生素", "s34-7"], [33, "拉肚子先喝口服补液盐补水，5 岁以下的孩子不给止泻药", "s34-8"], [33, "止痛药一个月别吃超过 15 天，复方止痛药别超过 10 天，不然头痛可能就是药吃出来的", "s34-9"],
+    [33, "过期药和用不上的剩药定期清出来，连包装投进有害垃圾桶，别留在家里", "s34-10"], [33, "用头孢、甲硝唑这类抗菌药期间和停药后 7 天内不喝酒，藿香正气水、止咳糖浆这类含酒精的药也不碰", "s34-11"], [33, "吃了含氯苯那敏（扑尔敏）、苯海拉明的感冒药或抗过敏药，吃药期间别开车，也别登高干活、别操作机器", "s34-12"],
+  ];
+
+  const data = {
+    brent: { ...SNAPSHOT.brent, series: SNAPSHOT.brent.series },
+    csi: { ...SNAPSHOT.csi, series: SNAPSHOT.csi.series },
+    gold: { ...SNAPSHOT.gold, series: SNAPSHOT.gold.series },
+    fear: { ...SNAPSHOT.fear },
+    erp: { ...SNAPSHOT.erp, series: ERP_HISTORY.map(([d, v, c]) => ({ d, v, c })) }
+  };
+
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const cache = new Map();
+  let loading = false;
+  let lastTipIndex = -1;
+
+  /* ---------------------------- utils ---------------------------- */
+
+  const nf = (value, digits = 2) => {
+    if (value === null || value === undefined || value === '') return '—';
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '—';
+    return n.toLocaleString('zh-CN', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits
+    });
+  };
+
+  const signed = (value, digits = 2) => {
+    if (value === null || value === undefined || value === '') return '—';
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '—';
+    return (n > 0 ? '+' : '') + nf(n, digits);
+  };
+
+  const trendClass = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n) || Math.abs(n) < 0.0001) return 'flat';
+    return n > 0 ? 'up' : 'down';
+  };
+
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+
+  const fmtShortDate = (date) => {
+    if (!date) return '—';
+    const s = String(date);
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(5, 10).replace('-', '/');
+    if (/^\d{8}$/.test(s)) return s.slice(4, 6) + '/' + s.slice(6, 8);
+    return s;
+  };
+
+  const fmtRange = (series) => {
+    if (!series || series.length < 2) return '—';
+    return fmtShortDate(series[0].d) + ' → ' + fmtShortDate(series[series.length - 1].d);
+  };
+
+  const fmtStamp = (date, time) => {
+    if (!date) return '—';
+    const d = String(date);
+    if (time) return d.slice(5) + ' ' + String(time).slice(0, 5);
+    return d.slice(5);
+  };
+
+  const parseIndexStamp = (raw) => {
+    if (!raw || raw.length < 12) return '—';
+    return raw.slice(4, 6) + '-' + raw.slice(6, 8) + ' ' + raw.slice(8, 10) + ':' + raw.slice(10, 12);
+  };
+
+  const normalizePE = (value) => {
+    let n = Number(value);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    while (n > 100) n /= 10;
+    return n;
+  };
+
+  const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+
+  const setStatus = (key, state, label) => {
+    const el = document.getElementById(key + 'Status');
+    if (!el) return;
+    el.dataset.state = state;
+    el.innerHTML = '<i></i>' + label;
+  };
+
+  const applyTrend = (el, value) => {
+    if (!el) return;
+    el.classList.remove('up', 'down', 'flat');
+    el.classList.add(trendClass(value));
+  };
+
+  const setChartPlaceholder = (el, text) => {
+    if (!el) return;
+    el.innerHTML = '<div class="chart-placeholder">' + text + '</div>';
+  };
+
+  const debounce = (fn, wait) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), wait);
+    };
+  };
+
+  /* ------------------------- clock / shell ------------------------ */
+
+  function startClock() {
+    const tick = () => {
+      const now = new Date();
+      const time = now.toLocaleTimeString('zh-CN', {
+        timeZone: 'Asia/Shanghai', hour12: false
+      });
+      const date = now.toLocaleDateString('zh-CN', {
+        timeZone: 'Asia/Shanghai', year: 'numeric', month: 'long', day: 'numeric', weekday: 'short'
+      }).replace(/(周.)$/, ' · $1');
+      setText('clock', time);
+      setText('date', date);
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  function updateHeader() {
+    const live = ['brent', 'csi', 'gold'].filter((key) => data[key].status === 'live').length;
+    const pill = $('#livePill');
+    if (!pill) return;
+    pill.dataset.state = live === 3 ? 'live' : live > 0 ? 'partial' : 'snapshot';
+    setText('liveText', live === 3 ? '实时行情' : live > 0 ? '部分实时' : '快照数据');
+  }
+
+  function finishLoading() {
+    loading = false;
+    const btn = $('#refreshBtn');
+    if (btn) {
+      btn.classList.remove('is-loading');
+      btn.disabled = false;
+    }
+    const now = new Date();
+    setText('updatedAt', now.toLocaleTimeString('zh-CN', {
+      timeZone: 'Asia/Shanghai', hour12: false
+    }));
+    updateHeader();
+  }
+
+  /* -------------------------- data loaders ------------------------ */
+
+  function loadScript(src, varName, timeout = 9000, charset = 'utf-8') {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      let settled = false;
+      const timer = setTimeout(() => done(false), timeout);
+
+      function done(ok, value) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        script.remove();
+        try { delete window[varName]; } catch (err) { /* noop */ }
+        if (ok) resolve(value);
+        else reject(new Error('load failed: ' + src));
+      }
+
+      script.charset = charset;
+      script.src = src;
+      script.onload = () => {
+        const value = window[varName];
+        if (value === undefined || value === null) done(false);
+        else done(true, value);
+      };
+      script.onerror = () => done(false);
+      document.head.appendChild(script);
+    });
+  }
+
+  function tencentQuote(code) {
+    const varName = 'v_' + code.replace(/[^a-zA-Z0-9_]/g, '_');
+    const src = 'https://qt.gtimg.cn/q=' + encodeURIComponent(code) + '&_=' + Date.now();
+    return loadScript(src, varName, 8000, 'gbk');
+  }
+
+  function parseTencentIndex(raw) {
+    if (typeof raw !== 'string') return null;
+    const f = raw.split('~');
+    const price = Number(f[3]);
+    if (!Number.isFinite(price) || price <= 0) return null;
+    return {
+      price,
+      prev: Number(f[4]),
+      open: Number(f[5]),
+      change: Number(f[31]),
+      pct: Number(f[32]),
+      high: Number(f[33]),
+      low: Number(f[34]),
+      amountWan: Number(f[37]),
+      pe: normalizePE(f[39]),
+      stamp: parseIndexStamp(f[30]),
+      date: f[30] ? f[30].slice(0, 4) + '-' + f[30].slice(4, 6) + '-' + f[30].slice(6, 8) : '',
+      status: 'live'
+    };
+  }
+
+  function parseTencentFuture(raw) {
+    if (typeof raw !== 'string') return null;
+    const f = raw.split(',');
+    const price = Number(f[0]);
+    if (!Number.isFinite(price) || price <= 0) return null;
+    const prev = Number(f[7]);
+    return {
+      price,
+      prev,
+      change: price - prev,
+      pct: Number(f[1]),
+      high: Number(f[4]),
+      low: Number(f[5]),
+      open: Number(f[8]),
+      stamp: fmtStamp(f[12], f[6]),
+      date: f[12] || '',
+      status: 'live'
+    };
+  }
+
+  function loadTencentKline(code, days = 30) {
+    const cb = 'txk_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const src = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=' +
+      encodeURIComponent(code + ',day,,,' + days + ',qfq') + '&_var=' + cb + '&_=' + Date.now();
+    return loadScript(src, cb, 10000).then((payload) => {
+      const node = payload && payload.data && payload.data[code];
+      const rows = node && (node.day || node.qfqday);
+      if (!Array.isArray(rows)) throw new Error('no kline');
+      return rows.map((row) => ({ d: row[0], v: Number(row[2]) }))
+        .filter((point) => point.d && Number.isFinite(point.v));
+    });
+  }
+
+  function loadSinaKline(symbol) {
+    const cb = 'sina_' + symbol + '_' + Date.now().toString(36);
+    const src = 'https://stock2.finance.sina.com.cn/futures/api/jsonp.php/var%20' + cb +
+      '=/GlobalFuturesService.getGlobalFuturesDailyKLine?symbol=' + encodeURIComponent(symbol) + '&_=' + Date.now();
+    return loadScript(src, cb, 14000, 'gbk').then((rows) => {
+      if (!Array.isArray(rows)) throw new Error('no sina kline');
+      return rows.map((row) => {
+        if (Array.isArray(row)) return { d: row[0], v: Number(row[4]) };
+        return {
+          d: row.date || row.d,
+          v: Number(row.close !== undefined ? row.close : row.c)
+        };
+      }).filter((point) => point.d && Number.isFinite(point.v))
+        .sort((a, b) => String(a.d).localeCompare(String(b.d)))
+        .slice(-30);
+    });
+  }
+
+  function cached(key, ttl, loader) {
+    const hit = cache.get(key);
+    if (hit && Date.now() - hit.t < ttl) return Promise.resolve(hit.value);
+    return loader().then((value) => {
+      cache.set(key, { t: Date.now(), value });
+      return value;
+    });
+  }
+
+  async function fetchText(url, timeout = 7000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+      if (!response.ok) throw new Error('http ' + response.status);
+      return await response.text();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function parseFearCsv(text) {
+    if (!text || !text.includes('date,fear_greed_index')) return null;
+    const lines = text.replace(/^\uFEFF/, '').trim().split(/\r?\n/);
+    const rows = [];
+    for (let i = 1; i < lines.length; i += 1) {
+      const parts = lines[i].split(',');
+      if (parts.length < 2) continue;
+      const date = parts[0].trim();
+      const value = Number(parts[1]);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(value)) {
+        rows.push({ d: date, v: value });
+      }
+    }
+    if (!rows.length) return null;
+
+    const last = rows[rows.length - 1];
+    const cutoff = String(Number(last.d.slice(0, 4)) - 10) + last.d.slice(4);
+    const sample = rows.filter((row) => row.d >= cutoff && row.v >= 0 && row.v <= 100);
+    const below = sample.filter((row) => row.v < last.v).length;
+    const computedPct = sample.length ? (below / sample.length) * 100 : SNAPSHOT.fear.pct;
+    // 与来源页面同一天时优先采用其公布值，后续新数据再按同一口径自算。
+    const pct = last.d === SNAPSHOT.fear.date ? SNAPSHOT.fear.pct : computedPct;
+
+    return {
+      score: last.v,
+      pct: Math.round(pct * 10) / 10,
+      date: last.d,
+      series: rows.slice(-42),
+      status: 'live'
+    };
+  }
+
+  async function loadBrent() {
+    try {
+      const raw = await tencentQuote('hf_OIL');
+      const quote = parseTencentFuture(raw);
+      if (!quote) throw new Error('bad brent quote');
+      data.brent = { ...data.brent, ...quote, status: 'live' };
+      renderBrent();
+      cached('sina:OIL', 10 * 60 * 1000, () => loadSinaKline('OIL'))
+        .then((series) => {
+          data.brent.series = series;
+          renderBrent();
+        })
+        .catch(() => {});
+    } catch (err) {
+      data.brent.status = 'snapshot';
+      setStatus('brent', 'snapshot', '快照');
+    }
+  }
+
+  async function loadCsi() {
+    try {
+      const raw = await tencentQuote('sh000300');
+      const quote = parseTencentIndex(raw);
+      if (!quote) throw new Error('bad csi quote');
+      data.csi = { ...data.csi, ...quote, status: 'live' };
+      if (!data.csi.pe) data.csi.pe = SNAPSHOT.csi.pe;
+      renderCsi();
+      cached('tx:sh000300', 10 * 60 * 1000, () => loadTencentKline('sh000300'))
+        .then((series) => {
+          data.csi.series = series;
+          renderCsi();
+        })
+        .catch(() => {});
+    } catch (err) {
+      data.csi.status = 'snapshot';
+      setStatus('csi', 'snapshot', '快照');
+    }
+  }
+
+  async function loadGold() {
+    try {
+      const raw = await tencentQuote('hf_GC');
+      const quote = parseTencentFuture(raw);
+      if (!quote) throw new Error('bad gold quote');
+      data.gold = { ...data.gold, ...quote, status: 'live' };
+      renderGold();
+      cached('sina:GC', 10 * 60 * 1000, () => loadSinaKline('GC'))
+        .then((series) => {
+          data.gold.series = series;
+          renderGold();
+        })
+        .catch(() => {});
+    } catch (err) {
+      data.gold.status = 'snapshot';
+      setStatus('gold', 'snapshot', '快照');
+    }
+  }
+
+  async function loadFear() {
+    const direct = 'https://baifenwei.com/data/fear-greed/fear-greed-full.csv';
+    const sources = [
+      direct,
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(direct),
+      'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(direct)
+    ];
+
+    for (const url of sources) {
+      try {
+        const text = await fetchText(url, url === direct ? 5000 : 7000);
+        const parsed = parseFearCsv(text);
+        if (parsed) {
+          data.fear = parsed;
+          renderFear();
+          setStatus('fear', 'daily', '日更');
+          return;
+        }
+      } catch (err) { /* try next source */ }
+    }
+    setStatus('fear', 'snapshot', '快照');
+  }
+
+  /* ----------------------------- charts --------------------------- */
+
+  function smoothPath(points) {
+    if (points.length === 2) {
+      return 'M ' + points[0].x.toFixed(2) + ' ' + points[0].y.toFixed(2) +
+        ' L ' + points[1].x.toFixed(2) + ' ' + points[1].y.toFixed(2);
+    }
+    let d = 'M ' + points[0].x.toFixed(2) + ' ' + points[0].y.toFixed(2);
+    for (let i = 1; i < points.length - 1; i += 1) {
+      const cx = (points[i].x + points[i + 1].x) / 2;
+      const cy = (points[i].y + points[i + 1].y) / 2;
+      d += ' Q ' + points[i].x.toFixed(2) + ' ' + points[i].y.toFixed(2) +
+        ' ' + cx.toFixed(2) + ' ' + cy.toFixed(2);
+    }
+    const last = points[points.length - 1];
+    d += ' L ' + last.x.toFixed(2) + ' ' + last.y.toFixed(2);
+    return d;
+  }
+
+  function renderChart(el, series, color, opts = {}) {
+    if (!el) return;
+    const points = (series || []).filter((point) => point && Number.isFinite(Number(point.v)));
+    if (points.length < 2) {
+      setChartPlaceholder(el, '等待走势数据');
+      return;
+    }
+
+    const decimals = opts.decimals === undefined ? 2 : opts.decimals;
+    const prefix = opts.prefix || '';
+    const W = Math.max(220, Math.round(el.clientWidth || 720));
+    const H = Math.max(110, Math.round(el.clientHeight || 190));
+    const padTop = 10;
+    const padBottom = 10;
+    const values = points.map((point) => Number(point.v));
+    let min = Math.min(...values);
+    let max = Math.max(...values);
+    if (max - min < 0.000001) {
+      max += 1;
+      min -= 1;
+    }
+    const span = max - min;
+    const chartId = el.id || ('chart_' + Math.random().toString(36).slice(2));
+
+    const pts = points.map((point, index) => ({
+      x: (index / (points.length - 1)) * W,
+      y: padTop + (1 - (Number(point.v) - min) / span) * (H - padTop - padBottom),
+      d: point.d,
+      v: Number(point.v)
+    }));
+
+    const line = smoothPath(pts);
+    const area = line + ' L ' + W + ' ' + H + ' L 0 ' + H + ' Z';
+    const last = pts[pts.length - 1];
+    const gradientId = 'grad_' + chartId;
+    const glowId = 'glow_' + chartId;
+
+    const grid = [1 / 3, 2 / 3].map((ratio) =>
+      '<line x1="0" y1="' + (H * ratio).toFixed(1) + '" x2="' + W + '" y2="' + (H * ratio).toFixed(1) +
+      '" stroke="rgba(255,255,255,.045)" stroke-width="1" stroke-dasharray="2 7"/>'
+    ).join('');
+
+    el.innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="100%" preserveAspectRatio="none" role="img" aria-hidden="true">' +
+        '<defs>' +
+          '<linearGradient id="' + gradientId + '" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0%" stop-color="' + color + '" stop-opacity=".30"/>' +
+            '<stop offset="62%" stop-color="' + color + '" stop-opacity=".08"/>' +
+            '<stop offset="100%" stop-color="' + color + '" stop-opacity="0"/>' +
+          '</linearGradient>' +
+          '<filter id="' + glowId + '" x="-40%" y="-40%" width="180%" height="180%">' +
+            '<feGaussianBlur stdDeviation="3.2" result="b"/>' +
+            '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+          '</filter>' +
+        '</defs>' +
+        '<path d="' + area + '" fill="url(#' + gradientId + ')"/>' +
+        grid +
+        '<path class="line" d="' + line + '" fill="none" stroke="' + color + '" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" filter="url(#' + glowId + ')"/>' +
+        '<line class="crosshair" x1="0" y1="0" x2="0" y2="' + H + '" stroke="rgba(255,255,255,.28)" stroke-width="1" stroke-dasharray="3 4" opacity="0"/>' +
+        '<circle class="hover-dot" cx="0" cy="0" r="4" fill="' + color + '" stroke="#0a0e17" stroke-width="2" opacity="0"/>' +
+        '<circle cx="' + last.x.toFixed(2) + '" cy="' + last.y.toFixed(2) + '" r="9" fill="' + color + '" opacity=".10"/>' +
+        '<circle cx="' + last.x.toFixed(2) + '" cy="' + last.y.toFixed(2) + '" r="3.4" fill="' + color + '" stroke="#0a0e17" stroke-width="2"/>' +
+      '</svg>' +
+      '<div class="chart-tip" hidden><span></span><b></b></div>';
+
+    const svg = el.querySelector('svg');
+    const crosshair = el.querySelector('.crosshair');
+    const hoverDot = el.querySelector('.hover-dot');
+    const tip = el.querySelector('.chart-tip');
+
+    const hide = () => {
+      if (crosshair) crosshair.setAttribute('opacity', '0');
+      if (hoverDot) hoverDot.setAttribute('opacity', '0');
+      if (tip) tip.hidden = true;
+    };
+
+    el.onpointermove = (event) => {
+      const rect = el.getBoundingClientRect();
+      if (!rect.width) return;
+      const ratio = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+      const index = Math.round(ratio * (pts.length - 1));
+      const point = pts[index];
+      if (crosshair) {
+        crosshair.setAttribute('x1', point.x);
+        crosshair.setAttribute('x2', point.x);
+        crosshair.setAttribute('opacity', '.55');
+      }
+      if (hoverDot) {
+        hoverDot.setAttribute('cx', point.x);
+        hoverDot.setAttribute('cy', point.y);
+        hoverDot.setAttribute('opacity', '1');
+      }
+      if (tip) {
+        tip.hidden = false;
+        tip.querySelector('span').textContent = fmtShortDate(point.d);
+        tip.querySelector('b').textContent = prefix + nf(point.v, decimals);
+        tip.style.left = clamp((point.x / W) * 100, 7, 93) + '%';
+        tip.style.top = clamp((point.y / H) * 100, 16, 88) + '%';
+      }
+    };
+    el.onpointerleave = hide;
+    if (svg) svg.setAttribute('focusable', 'false');
+  }
+
+  function renderErpChart(el, series) {
+    if (!el) return;
+    const points = (series || [])
+      .map((point) => ({ d: point.d, v: Number(point.v), c: Number(point.c) }))
+      .filter((point) => point.d && Number.isFinite(point.v) && Number.isFinite(point.c));
+    if (points.length < 2) {
+      setChartPlaceholder(el, '暂无历史数据');
+      return;
+    }
+
+    const W = Math.max(280, Math.round(el.clientWidth || 900));
+    const H = Math.max(150, Math.round(el.clientHeight || 238));
+    const padL = 10;
+    const padR = 38;
+    const padT = 12;
+    const padB = 26;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+    const n = points.length;
+
+    const erpMin = 2;
+    const erpMax = 9.5;
+    const csiMin = 2000;
+    const csiMax = 6000;
+    const xOf = (index) => padL + (index / (n - 1)) * plotW;
+    const yErp = (value) => padT + (1 - (value - erpMin) / (erpMax - erpMin)) * plotH;
+    const yCsi = (value) => padT + (1 - (value - csiMin) / (csiMax - csiMin)) * plotH;
+
+    const erpPts = points.map((point, index) => ({ x: xOf(index), y: yErp(point.v) }));
+    const csiPts = points.map((point, index) => ({ x: xOf(index), y: yCsi(point.c) }));
+    const erpLine = smoothPath(erpPts);
+    const csiLine = smoothPath(csiPts);
+    const area = erpLine + ' L ' + (padL + plotW).toFixed(2) + ' ' + (H - padB).toFixed(2) +
+      ' L ' + padL.toFixed(2) + ' ' + (H - padB).toFixed(2) + ' Z';
+    const last = erpPts[n - 1];
+
+    const thresholds = [3, 5].map((value) => {
+      const y = yErp(value);
+      return '<line x1="' + padL + '" y1="' + y.toFixed(2) + '" x2="' + (padL + plotW) + '" y2="' + y.toFixed(2) +
+        '" stroke="rgba(255,255,255,.16)" stroke-width="1" stroke-dasharray="3 6"/>' +
+        '<text x="' + (W - padR + 6) + '" y="' + (y + 3).toFixed(2) +
+        '" fill="rgba(141,150,170,.62)" font-family="Bahnschrift, sans-serif" font-size="8.5">' + value + '%</text>';
+    }).join('');
+
+    const yearLabels = [2012, 2015, 2018, 2021, 2024, 2026].map((year, index, list) => {
+      let pointIndex = points.findIndex((point) => String(point.d).slice(0, 4) >= String(year));
+      if (pointIndex < 0) pointIndex = n - 1;
+      const anchor = index === 0 ? 'start' : index === list.length - 1 ? 'end' : 'middle';
+      return '<text x="' + xOf(pointIndex).toFixed(2) + '" y="' + (H - 8) +
+        '" text-anchor="' + anchor + '" fill="rgba(141,150,170,.48)" font-family="Bahnschrift, sans-serif" font-size="8.5">' +
+        year + '</text>';
+    }).join('');
+
+    el.innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true">' +
+        '<defs>' +
+          '<linearGradient id="erpAreaGrad" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0%" stop-color="#5eead4" stop-opacity=".15"/>' +
+            '<stop offset="70%" stop-color="#5eead4" stop-opacity=".035"/>' +
+            '<stop offset="100%" stop-color="#5eead4" stop-opacity="0"/>' +
+          '</linearGradient>' +
+          '<filter id="erpLineGlow" x="-40%" y="-40%" width="180%" height="180%">' +
+            '<feGaussianBlur stdDeviation="1.8" result="b"/>' +
+            '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+          '</filter>' +
+        '</defs>' +
+        '<path d="' + area + '" fill="url(#erpAreaGrad)"/>' +
+        thresholds +
+        '<path d="' + csiLine + '" fill="none" stroke="rgba(255,107,125,.34)" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>' +
+        '<path d="' + erpLine + '" fill="none" stroke="#5eead4" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round" filter="url(#erpLineGlow)"/>' +
+        '<circle cx="' + last.x.toFixed(2) + '" cy="' + last.y.toFixed(2) + '" r="9" fill="#5eead4" opacity=".12"/>' +
+        '<circle cx="' + last.x.toFixed(2) + '" cy="' + last.y.toFixed(2) + '" r="3.4" fill="#5eead4" stroke="#0a0e17" stroke-width="2"/>' +
+        '<line class="erp-crosshair" x1="0" y1="' + padT + '" x2="0" y2="' + (H - padB) + '" stroke="rgba(255,255,255,.26)" stroke-width="1" stroke-dasharray="3 4" opacity="0"/>' +
+        '<circle class="erp-hover-erp" cx="0" cy="0" r="4" fill="#5eead4" stroke="#0a0e17" stroke-width="2" opacity="0"/>' +
+        '<circle class="erp-hover-csi" cx="0" cy="0" r="3" fill="#ff6b7d" stroke="#0a0e17" stroke-width="2" opacity="0"/>' +
+        yearLabels +
+      '</svg>' +
+      '<div class="erp-tip" hidden>' +
+        '<span class="erp-tip-date"></span>' +
+        '<div class="erp-tip-row"><i class="legend-dot legend-dot--erp"></i><span>风险溢价</span><b class="erp-tip-erp"></b></div>' +
+        '<div class="erp-tip-row"><i class="legend-dot legend-dot--csi"></i><span>沪深300</span><b class="erp-tip-csi"></b></div>' +
+      '</div>';
+
+    const crosshair = el.querySelector('.erp-crosshair');
+    const hoverErp = el.querySelector('.erp-hover-erp');
+    const hoverCsi = el.querySelector('.erp-hover-csi');
+    const tip = el.querySelector('.erp-tip');
+    const tipDate = el.querySelector('.erp-tip-date');
+    const tipErp = el.querySelector('.erp-tip-erp');
+    const tipCsi = el.querySelector('.erp-tip-csi');
+
+    const hide = () => {
+      if (crosshair) crosshair.setAttribute('opacity', '0');
+      if (hoverErp) hoverErp.setAttribute('opacity', '0');
+      if (hoverCsi) hoverCsi.setAttribute('opacity', '0');
+      if (tip) tip.hidden = true;
+    };
+
+    el.onpointermove = (event) => {
+      const rect = el.getBoundingClientRect();
+      if (!rect.width) return;
+      const xView = (event.clientX - rect.left) * (W / rect.width);
+      const ratio = clamp((xView - padL) / plotW, 0, 1);
+      const index = Math.round(ratio * (n - 1));
+      const point = points[index];
+      const x = xOf(index);
+      const yErpValue = yErp(point.v);
+      const yCsiValue = yCsi(point.c);
+
+      if (crosshair) {
+        crosshair.setAttribute('x1', x);
+        crosshair.setAttribute('x2', x);
+        crosshair.setAttribute('opacity', '.55');
+      }
+      if (hoverErp) {
+        hoverErp.setAttribute('cx', x);
+        hoverErp.setAttribute('cy', yErpValue);
+        hoverErp.setAttribute('opacity', '1');
+      }
+      if (hoverCsi) {
+        hoverCsi.setAttribute('cx', x);
+        hoverCsi.setAttribute('cy', yCsiValue);
+        hoverCsi.setAttribute('opacity', '1');
+      }
+      if (tip) {
+        tip.hidden = false;
+        tipDate.textContent = point.d;
+        tipErp.textContent = nf(point.v, 2) + '%';
+        tipCsi.textContent = nf(point.c, 0);
+        tip.style.left = clamp((x / W) * 100, 12, 88) + '%';
+        tip.style.top = clamp((yErpValue / H) * 100, 18, 84) + '%';
+      }
+    };
+    el.onpointerleave = hide;
+  }
+
+  /* ---------------------------- renderers ------------------------- */
+
+  const FEAR_LEVELS = [
+    { max: 25, text: '极度恐慌', cls: 'extreme-fear', desc: '情绪极度悲观，市场处于高波动区间。' },
+    { max: 45, text: '恐慌', cls: 'fear', desc: '风险偏好偏低，市场情绪处于恐慌区间。' },
+    { max: 55, text: '中性', cls: 'neutral', desc: '多空情绪相对均衡，等待新的方向信号。' },
+    { max: 75, text: '贪婪', cls: 'greed', desc: '风险偏好升温，市场情绪偏向贪婪。' },
+    { max: 100, text: '极度贪婪', cls: 'extreme-greed', desc: '情绪高度亢奋，需留意追高风险。' }
+  ];
+
+  function fearLevel(score) {
+    return FEAR_LEVELS.find((level) => score <= level.max) || FEAR_LEVELS[FEAR_LEVELS.length - 1];
+  }
+
+  function gaugeSvg(score) {
+    const cx = 160;
+    const cy = 168;
+    const r = 128;
+    const angle = Math.PI - (clamp(score, 0, 100) / 100) * Math.PI;
+    const mx = cx + r * Math.cos(angle);
+    const my = cy - r * Math.sin(angle);
+    const sx = cx + 20 * Math.cos(angle);
+    const sy = cy - 20 * Math.sin(angle);
+    const arc = 'M ' + (cx - r) + ' ' + cy + ' A ' + r + ' ' + r + ' 0 0 1 ' + (cx + r) + ' ' + cy;
+
+    const ticks = [0, 25, 50, 75, 100].map((tick) => {
+      const tickAngle = Math.PI - (tick / 100) * Math.PI;
+      const x1 = cx + (r + 9) * Math.cos(tickAngle);
+      const y1 = cy - (r + 9) * Math.sin(tickAngle);
+      const x2 = cx + (r + 16) * Math.cos(tickAngle);
+      const y2 = cy - (r + 16) * Math.sin(tickAngle);
+      return '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) +
+        '" y2="' + y2.toFixed(1) + '" stroke="rgba(255,255,255,.20)" stroke-width="1"/>';
+    }).join('');
+
+    return '<svg viewBox="0 0 320 190" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">' +
+      '<defs>' +
+        '<linearGradient id="fearGaugeGrad" x1="0" y1="0" x2="1" y2="0">' +
+          '<stop offset="0%" stop-color="#2fd6a5"/>' +
+          '<stop offset="30%" stop-color="#8bd17c"/>' +
+          '<stop offset="50%" stop-color="#f2c94c"/>' +
+          '<stop offset="72%" stop-color="#f2994a"/>' +
+          '<stop offset="100%" stop-color="#ff5f6d"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      '<path d="' + arc + '" fill="none" stroke="rgba(255,255,255,.055)" stroke-width="18" stroke-linecap="round"/>' +
+      '<path d="' + arc + '" fill="none" stroke="url(#fearGaugeGrad)" stroke-width="18" stroke-linecap="round" opacity=".86"/>' +
+      ticks +
+      '<line x1="' + sx.toFixed(1) + '" y1="' + sy.toFixed(1) + '" x2="' + mx.toFixed(1) + '" y2="' + my.toFixed(1) +
+        '" stroke="rgba(255,255,255,.72)" stroke-width="1.8" stroke-linecap="round"/>' +
+      '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="13" fill="#fff" opacity=".07"/>' +
+      '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="5.4" fill="#fff"/>' +
+      '<circle cx="' + cx + '" cy="' + cy + '" r="4.6" fill="#fff" opacity=".92"/>' +
+      '</svg>';
+  }
+
+  function renderBrent() {
+    const d = data.brent;
+    setText('brentPrice', nf(d.price, 2));
+    applyTrend($('#brentChange'), d.change);
+    const change = $('#brentChange');
+    if (change) {
+      change.innerHTML = '<span class="chg-abs">' + signed(d.change, 2) + '</span>' +
+        '<span class="chg-pct">' + signed(d.pct, 2) + '%</span>';
+    }
+    setText('brentOpen', nf(d.open, 2));
+    setText('brentHigh', nf(d.high, 2));
+    setText('brentLow', nf(d.low, 2));
+    setText('brentPrev', nf(d.prev, 2));
+    setText('brentStamp', d.stamp || '—');
+    datasetRange('brentRange', d.series);
+    renderChart($('#brentChart'), d.series || [{ d: d.date, v: d.prev }, { d: d.date, v: d.price }], '#f6b45c', {
+      decimals: 2, prefix: '$'
+    });
+    setStatus('brent', d.status === 'live' ? 'live' : 'snapshot', d.status === 'live' ? '实时' : '快照');
+  }
+
+  function renderCsi() {
+    const d = data.csi;
+    setText('csiPrice', nf(d.price, 2));
+    applyTrend($('#csiChange'), d.change);
+    const change = $('#csiChange');
+    if (change) {
+      change.innerHTML = '<span class="chg-abs">' + signed(d.change, 2) + '</span>' +
+        '<span class="chg-pct">' + signed(d.pct, 2) + '%</span>';
+    }
+    setText('csiOpen', nf(d.open, 2));
+    setText('csiHigh', nf(d.high, 2));
+    setText('csiLow', nf(d.low, 2));
+    setText('csiAmount', fmtAmount(d.amountWan));
+    setText('csiPe', 'PE ' + nf(d.pe, 2) + '×');
+    setText('csiStamp', d.stamp || '—');
+    datasetRange('csiRange', d.series);
+    renderChart($('#csiChart'), d.series || [{ d: d.date, v: d.prev }, { d: d.date, v: d.price }], '#ff6b7d', {
+      decimals: 2, prefix: ''
+    });
+    setStatus('csi', d.status === 'live' ? 'live' : 'snapshot', d.status === 'live' ? '实时' : '快照');
+  }
+
+  function renderGold() {
+    const d = data.gold;
+    setText('goldPrice', nf(d.price, 2));
+    applyTrend($('#goldChange'), d.change);
+    const change = $('#goldChange');
+    if (change) {
+      change.innerHTML = '<span class="chg-abs">' + signed(d.change, 2) + '</span>' +
+        '<span class="chg-pct">' + signed(d.pct, 2) + '%</span>';
+    }
+    setText('goldOpen', nf(d.open, 2));
+    setText('goldHigh', nf(d.high, 2));
+    setText('goldLow', nf(d.low, 2));
+    setText('goldPrev', nf(d.prev, 2));
+    setText('goldStamp', d.stamp || '—');
+    datasetRange('goldRange', d.series);
+    renderChart($('#goldChart'), d.series || [{ d: d.date, v: d.prev }, { d: d.date, v: d.price }], '#e9c46a', {
+      decimals: 2, prefix: '$'
+    });
+    setStatus('gold', d.status === 'live' ? 'live' : 'snapshot', d.status === 'live' ? '实时' : '快照');
+  }
+
+  function datasetRange(id, series) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = fmtRange(series);
+  }
+
+  function fmtAmount(wan) {
+    const n = Number(wan);
+    if (!Number.isFinite(n) || n <= 0) return '—';
+    if (n >= 10000) return nf(n / 10000, 1) + '亿';
+    return nf(n, 0) + '万';
+  }
+
+  function renderFear() {
+    const d = data.fear;
+    const score = clamp(Number(d.score), 0, 100);
+    const level = fearLevel(score);
+    const pct = clamp(Number(d.pct), 0, 100);
+
+    setText('fearScore', nf(score, 2));
+    setText('fearPct', nf(pct, 1) + '%');
+    setText('fearDate', d.date || '—');
+    setText('fearDesc', level.desc);
+
+    const label = $('#fearLabel');
+    if (label) {
+      label.textContent = level.text;
+      label.className = 'fear-label ' + level.cls;
+    }
+
+    const gauge = $('#fearGauge');
+    if (gauge) gauge.innerHTML = gaugeSvg(score);
+
+    const fill = $('#fearPctFill');
+    const mark = $('#fearPctMark');
+    if (fill) fill.style.width = pct + '%';
+    if (mark) mark.style.left = pct + '%';
+
+    const isExtreme = score < 25 || score > 75;
+    const card = $('#fearCard');
+    if (card) {
+      card.classList.toggle('is-extreme', isExtreme);
+      card.classList.toggle('is-extreme-fear', isExtreme && score < 25);
+      card.classList.toggle('is-extreme-greed', isExtreme && score > 75);
+    }
+    const extremeBadge = $('#fearExtreme');
+    if (extremeBadge) {
+      extremeBadge.hidden = !isExtreme;
+      if (isExtreme) extremeBadge.innerHTML = '<i></i>情绪极值';
+    }
+
+    if (d.status === 'live') setStatus('fear', 'daily', '日更');
+    else setStatus('fear', 'snapshot', '快照');
+  }
+
+  function renderErp() {
+    const d = data.erp;
+    const value = Number(d.value);
+    const prev = Number(d.prev);
+    const delta = value - prev;
+    setText('erpValue', nf(value, 2) + '%');
+    setText('erpPrev', nf(prev, 2) + '%');
+    setText('erpDelta', Number.isFinite(delta) ? signed(delta, 2) + 'pct' : '—');
+    setText('erpDate', '截至 ' + fmtShortDate(d.date));
+
+    const badge = $('#erpBadge');
+    if (badge) {
+      let cls = 'mid';
+      let text = '中性';
+      if (value >= 5) { cls = 'high'; text = '性价比高'; }
+      else if (value < 3) { cls = 'low'; text = '性价比低'; }
+      badge.className = 'erp-badge ' + cls;
+      badge.textContent = text;
+    }
+
+    const marker = $('#erpMarker');
+    if (marker) marker.style.left = (clamp(value, 0, 7) / 7 * 100) + '%';
+
+    let note = '位于 3%–5% 中性区间';
+    if (value >= 5) note = '高于 5% 阈值 ' + nf(value - 5, 2) + ' 个百分点';
+    else if (value < 3) note = '低于 3% 阈值 ' + nf(3 - value, 2) + ' 个百分点';
+    if (Number.isFinite(delta)) note = '较前值 ' + signed(delta, 2) + ' 个百分点 · ' + note;
+    setText('erpNote', note);
+    renderErpChart($('#erpChart'), d.series);
+    setStatus('erp', 'daily', '日更');
+  }
+
+  function renderAll() {
+    renderBrent();
+    renderCsi();
+    renderGold();
+    renderFear();
+    renderErp();
+  }
+
+  /* ----------------------------- refresh -------------------------- */
+
+  async function refreshAll() {
+    if (loading) return;
+    loading = true;
+    const btn = $('#refreshBtn');
+    if (btn) {
+      btn.classList.add('is-loading');
+      btn.disabled = true;
+    }
+
+    const fearTask = loadFear();
+
+    try {
+      await Promise.allSettled([loadBrent(), loadCsi(), loadGold()]);
+      renderErp();
+    } finally {
+      finishLoading();
+    }
+
+    fearTask.then(() => {
+      updateHeader();
+    }).catch(() => {});
+  }
+
+  function pickLiveTip(animate = true) {
+    if (!LIVE_BETTER.length) return;
+    let index = Math.floor(Math.random() * LIVE_BETTER.length);
+    if (LIVE_BETTER.length > 1) {
+      let guard = 0;
+      while (index === lastTipIndex && guard < 8) {
+        index = Math.floor(Math.random() * LIVE_BETTER.length);
+        guard += 1;
+      }
+    }
+    lastTipIndex = index;
+
+    const item = LIVE_BETTER[index];
+    const section = LIVE_BETTER_SECTIONS[item[0]] || '高性价比人生指南';
+    const textEl = $('#liveTipText');
+    if (!textEl) return;
+
+    const apply = () => {
+      textEl.textContent = '「' + item[1] + '」';
+      textEl.href = 'https://cdyforever.github.io/how-to-live-better/#' + item[2];
+      textEl.title = '《高性价比人生指南》 · ' + section + ' · ' + item[1];
+    };
+
+    if (!animate) {
+      apply();
+      return;
+    }
+    textEl.classList.add('is-changing');
+    window.setTimeout(() => {
+      apply();
+      textEl.classList.remove('is-changing');
+    }, 160);
+  }
+
+  function init() {
+    startClock();
+    pickLiveTip(false);
+    renderAll();
+    setStatus('brent', 'loading', '连接中');
+    setStatus('csi', 'loading', '连接中');
+    setStatus('gold', 'loading', '连接中');
+    setStatus('fear', 'daily', '日更');
+    setStatus('erp', 'daily', '日更');
+    updateHeader();
+
+    const btn = $('#refreshBtn');
+    if (btn) btn.addEventListener('click', refreshAll);
+    const tipBtn = $('#liveTipRefresh');
+    if (tipBtn) tipBtn.addEventListener('click', () => pickLiveTip(true));
+
+    window.addEventListener('resize', debounce(() => {
+      renderBrent();
+      renderCsi();
+      renderGold();
+      renderErp();
+    }, 180));
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refreshAll();
+    });
+
+    refreshAll();
+    setInterval(() => {
+      if (!document.hidden) refreshAll();
+    }, 60 * 1000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      });
+    }
+  </script>
+</body>
+</html>
